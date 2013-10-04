@@ -27,6 +27,7 @@ namespace SimNum_Taxis
             InitializeComponent();
             this.m_Time = DateTime.Today;
             this.c_Time_TextBlock.Text = this.m_Time.Hour + "H" + this.m_Time.Minute;
+
             this.m_City = new City();
             this.m_City.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
                 {
@@ -38,8 +39,14 @@ namespace SimNum_Taxis
                         { 
                             this.c_Time_TextBlock.Text = 
                                 String.Format("{0,2}H{1,2}",
-                                    this.m_Time.Hour, this.m_Time.Minute); 
+                                    this.m_Time.Hour, this.m_Time.Minute);
                         }));
+                };
+            this.c_SizeCity_TextBlock.Text = this.m_City.SizeCity.ToString();
+            this.m_City.SizeCityChanged += (object sender, EventArgs e) =>
+                {
+                    this.c_SizeCity_TextBlock.Dispatcher.Invoke((Action)(
+                        () => { this.c_SizeCity_TextBlock.Text = this.m_City.SizeCity.ToString(); }));
                 };
         }
         
@@ -65,15 +72,11 @@ namespace SimNum_Taxis
         }
         #endregion
 
+        #region Events that manage the size of the city
         private void c_SizeCityMinus_Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-
+        { this.m_City.SizeCity--; }
         private void c_SizeCityPlus_Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
+        { this.m_City.SizeCity++; }
+        #endregion
     }
 }
