@@ -20,9 +20,47 @@ namespace SimNum_Taxis
     /// </summary>
     public partial class MainWindow : Window
     {
+        private DateTime m_Time;
         public MainWindow()
         {
             InitializeComponent();
+            this.m_Time = DateTime.Today;
+            this.c_Time_TextBlock.Text = this.m_Time.Hour + ":" + this.m_Time.Minute;
+            City v = new City();
+            v.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
+                {
+                    this.m_Time = this.m_Time.AddMinutes(v.RatioTime);
+                    // Need to use the Dispatcher : 
+                    // Allow a thread (here Timer from City) 
+                    // to access the graphical part
+                    this.c_Time_TextBlock.Dispatcher.Invoke((Action)(()
+                        => { this.c_Time_TextBlock.Text = this.m_Time.Hour + "H" + this.m_Time.Minute; }));
+                };
+        }
+
+        private void c_FasterTime_Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void c_TaxisNumberMinus_Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void c_SizeCityMinus_Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void c_TaxisNumberPlus_Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void c_SizeCityPlus_Button_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
