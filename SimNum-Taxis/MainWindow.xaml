@@ -23,7 +23,9 @@
         <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="0">
             <TextBlock Text="Temps In Application : " Margin="2" />
             <TextBlock Text="12:00" Name="c_Time_TextBlock" Margin="2" />
-            <Button Content="Speed Up" Name="c_FasterTime_Button" Margin="2" Click="c_FasterTime_Button_Click" />
+            <ToggleButton Content="Speed Up" Name="c_FasterTime_Button" Margin="2" 
+                          Checked="c_FasterTime_Button_Click" Unchecked="c_FasterTime_Button_Released" />
+                          
         </StackPanel>
 
         <!-- Informations and parametters -->
