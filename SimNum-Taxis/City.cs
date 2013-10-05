@@ -21,6 +21,7 @@ namespace SimNum_Taxis
             this.m_Clients = new List<Client>();
             this.m_SizeCity = 10;
             this.m_NumberOfClient = 0;
+            this.m_CurrentNumberOfClient = 0;
             this.m_NumberOfUnsatisfied = 0;
         }
 
@@ -69,6 +70,7 @@ namespace SimNum_Taxis
         private int m_SizeCity;
         #endregion
 
+        #region Client Management
         /// <summary>
         /// Add a new client at the given position
         /// Has to be private (or at least protected)
@@ -81,14 +83,15 @@ namespace SimNum_Taxis
             System.Threading.Timer t = new System.Threading.Timer(new TimerCallback(clientDied), c, 5000, Timeout.Infinite);
             
             this.m_NumberOfClient++; RaiseNumberOfClientChanged(this, new EventArgs());
+            this.m_CurrentNumberOfClient++; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
         }
         
         private void clientDied(object sender)
         {
             this.m_Clients.Remove((Client)sender);
             this.m_NumberOfUnsatisfied++; RaiseNumberOfUnsatisfiedChanged(this, new EventArgs());
+            this.m_CurrentNumberOfClient--; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
         }
-
 
         private List<Client> m_Clients;
         ///<return>List of all client position</return>
@@ -102,6 +105,7 @@ namespace SimNum_Taxis
                 return positions;
             }
         }
+        #endregion
 
         /// <summary> Allow to register to the city timer </summary>
         public event ElapsedEventHandler TimeElapsed
@@ -115,11 +119,14 @@ namespace SimNum_Taxis
         private double m_RatioTime;
         public double RatioTime { get { return this.m_RatioTime; } set { this.m_RatioTime = value; } }
 
-
+        #region Client Numbers
         public int NumberOfClient { get { return this.m_NumberOfClient; } }
         private int m_NumberOfClient;
+        public int CurrentNumberOfClient { get { return this.m_CurrentNumberOfClient; } }
+        private int m_CurrentNumberOfClient;
         public int NumberOfUnsatisfied { get { return this.m_NumberOfUnsatisfied;  } }
         private int m_NumberOfUnsatisfied;
+        #endregion
 
         #region events NumbersChanged
         private EventHandler e_NumberOfClientChanged;
@@ -132,6 +139,18 @@ namespace SimNum_Taxis
         {
             if(e_NumberOfClientChanged != null)
                 e_NumberOfClientChanged(sender, data);
+        }
+
+        private EventHandler e_CurrentNumberOfClientChanged;
+        public event EventHandler CurrentNumberOfClientChanged
+        {
+            add { e_NumberOfClientChanged += value; }
+            remove { e_NumberOfClientChanged -= value; }
+        }
+        private void RaiseCurrentNumberOfClientChanged(object sender, EventArgs data)
+        {
+            if(e_CurrentNumberOfClientChanged != null)
+                e_CurrentNumberOfClientChanged(sender, data);
         }
 
         private EventHandler e_NumberOfUnsatisfiedChanged;

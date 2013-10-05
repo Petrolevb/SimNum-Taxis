@@ -67,6 +67,12 @@ namespace SimNum_Taxis
                         () => { this.c_ClientsNumber_TextBlock.Text = this.m_City.NumberOfClient.ToString(); }));
                     this.UpdatePercentageInformations();
                 });
+            this.m_City.CurrentNumberOfClientChanged += new EventHandler(
+                (object sender, EventArgs e) => {
+                    this.c_CurrentClientNumber_TextBlock.Dispatcher.BeginInvoke((Action)(
+                        () => { this.c_CurrentClientNumber_TextBlock.Text = this.m_City.CurrentNumberOfClient.ToString();}));
+                    this.UpdatePercentageInformations();
+                });
             this.m_City.NumberOfUnsatisfiedChanged += new EventHandler(
                 (object sender, EventArgs e) => { 
                     this.c_ClientLost_TextBlock.Dispatcher.BeginInvoke((Action)(
@@ -82,7 +88,8 @@ namespace SimNum_Taxis
         {
             this.c_CurrentClientNumberPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() =>
             {
-                //this.c_CurrentClientNumberPercent_TextBlock.Text
+                this.c_CurrentClientNumberPercent_TextBlock.Text =
+                    100*this.m_City.CurrentNumberOfClient/this.m_City.NumberOfClient + "%";
             }));
             this.c_ClientLostPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() => 
             { 
