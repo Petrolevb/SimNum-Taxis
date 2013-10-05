@@ -12,9 +12,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- The city itself -->
-        <Canvas Name="c_City" Grid.Row="1" Grid.Column="0" Margin="7" />
-
+        <!-- Border needed to click in the canvas -->
+        <Border MouseDown="c_City_MouseDown" Grid.Column="0" Margin="7"
+                Grid.Row="1" Background="White">
+            <!-- The city itself -->
+            <Canvas Name="c_City" MouseDown="c_City_MouseDown"/>
+        </Border>
 
         <!-- Tittle -->
         <TextBlock Text="Simulation Taxis" TextAlignment="Center" Grid.Column="0" Grid.Row="0" />

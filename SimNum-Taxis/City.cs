@@ -17,7 +17,8 @@ namespace SimNum_Taxis
             this.m_TimeInApplication.Start();
             this.m_RatioTime = 5;
             this.m_Taxis = new List<Taxi>();
-            this.m_SizeCity = 5;
+            this.m_Clients = new List<Client>();
+            this.m_SizeCity = 10;
         }
 
         #region Number of Taxis
@@ -64,6 +65,29 @@ namespace SimNum_Taxis
         }
         private int m_SizeCity;
         #endregion
+
+        /// <summary>
+        /// Add a new client at the given position
+        /// Has to be private (or at least protected)
+        /// </summary>
+        /// <param name="position">Position of the new client</param>
+        public void SpawnClient(Point position)
+        {
+            this.m_Clients.Add(new Client(position));
+        }
+
+        private List<Client> m_Clients;
+        ///<return>List of all client position</return>
+        public List<Point> ClientPositions 
+        { 
+            get 
+            {
+                List<Point> positions = new List<Point>();
+                foreach(Client c in this.m_Clients)
+                    positions.Add(c.Position);
+                return positions;
+            }
+        }
 
         /// <summary> Allow to register to the city timer </summary>
         public event ElapsedEventHandler TimeElapsed

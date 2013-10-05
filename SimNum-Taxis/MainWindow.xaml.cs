@@ -77,6 +77,14 @@ namespace SimNum_Taxis
             Canvas.SetTop(el, height/2.0 - el.Height/2.0);
             Canvas.SetLeft(el, width/2.0- el.Width/2.0);
             this.c_City.Children.Add(el);
+
+            foreach(Point clientPosition in this.m_City.ClientPositions)
+            {
+                TextBlock tb = new TextBlock() { Text = "C" };
+                Canvas.SetLeft(tb, clientPosition.X);
+                Canvas.SetTop(tb, clientPosition.Y);
+                this.c_City.Children.Add(tb);
+            }
         }
 
         #region Manage the Faster Time Button
@@ -105,5 +113,8 @@ namespace SimNum_Taxis
         private void c_SizeCityPlus_Button_Click(object sender, RoutedEventArgs e)
         { this.m_City.SizeCity++; }
         #endregion
+
+        private void c_City_MouseDown(object sender, MouseButtonEventArgs e)
+        { this.m_City.SpawnClient(e.GetPosition(this.c_City)); }
     }
 }
