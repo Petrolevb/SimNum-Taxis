@@ -68,28 +68,32 @@
                        Grid.Column="0" Grid.Row="2" Margin="2" />
             <TextBlock Text="0" Name="c_CurrentClientNumber_TextBlock" 
                        Grid.Column="1" Grid.Row="2" Margin="2" />
-            <TextBlock Text="100%" TextAlignment="Center"
-                       Grid.Column="2" Grid.Row="2" Margin="2" />
+            <TextBlock Text="0%" TextAlignment="Center" Margin="2"
+                       Name="c_CurrentClientNumberPercent_TextBlock"
+                       Grid.Column="2" Grid.Row="2"  />
 
             <TextBlock Text="In a Taxi : " TextAlignment="Right"
                        Grid.Column="0" Grid.Row="3" Margin="2" />
             <TextBlock Text="0" Name="c_InaTaxis_TextBlock" 
                        Grid.Column="1" Grid.Row="3" Margin="2" />
-            <TextBlock Text="100%" TextAlignment="Center"
+            <TextBlock Text="0%" TextAlignment="Center"
+                       Name="c_InaTaxisPercent_TextBlock"
                        Grid.Column="2" Grid.Row="3" Margin="2" />
 
             <TextBlock Text="Managed : " TextAlignment="Right"
                        Grid.Column="0" Grid.Row="4" Margin="2" />
             <TextBlock Text="0" Name="c_ClientManaged_TextBlock" 
                        Grid.Column="1" Grid.Row="4" Margin="2" />
-            <TextBlock Text="100%" TextAlignment="Center"
+            <TextBlock Text="0%" TextAlignment="Center"
+                       Name="c_ClientManagedPercent_TextBlock"
                        Grid.Column="2" Grid.Row="4" Margin="2" />
 
             <TextBlock Text="Lost : " TextAlignment="Right"
                        Grid.Column="0" Grid.Row="5" Margin="2" />
             <TextBlock Text="0" Name="c_ClientLost_TextBlock" 
                        Grid.Column="1" Grid.Row="5" Margin="2" />
-            <TextBlock Text="100%" TextAlignment="Center"
+            <TextBlock Text="0%" TextAlignment="Center"
+                       Name="c_ClientLostPercent_TextBlock"
                        Grid.Column="2" Grid.Row="5" Margin="2" />
 
             <TextBlock Text="Size City : " TextAlignment="Center"

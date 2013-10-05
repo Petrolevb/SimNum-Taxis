@@ -27,7 +27,7 @@ namespace SimNum_Taxis
             InitializeComponent();
             // Call the redraw function when the window size change
             this.SizeChanged += new SizeChangedEventHandler((object o, SizeChangedEventArgs e) 
-                                    => { this.Dispatcher.Invoke((Action)(() 
+                                    => { this.Dispatcher.BeginInvoke((Action)(() 
                                         => { this.ReDrawCanvas(); })); });
             this.m_Time = DateTime.Today;
             this.c_Time_TextBlock.Text = this.m_Time.Hour + "H" + this.m_Time.Minute;
@@ -60,9 +60,37 @@ namespace SimNum_Taxis
                 };
             #endregion
 
+            #region Links events in city with board informations
+            this.m_City.NumberOfClientChanged += new EventHandler(
+                (object sender, EventArgs e) => { 
+                    this.c_ClientsNumber_TextBlock.Dispatcher.BeginInvoke((Action)(
+                        () => { this.c_ClientsNumber_TextBlock.Text = this.m_City.NumberOfClient.ToString(); }));
+                    this.UpdatePercentageInformations();
+                });
+            this.m_City.NumberOfUnsatisfiedChanged += new EventHandler(
+                (object sender, EventArgs e) => { 
+                    this.c_ClientLost_TextBlock.Dispatcher.BeginInvoke((Action)(
+                        () => { this.c_ClientLost_TextBlock.Text = this.m_City.NumberOfUnsatisfied.ToString();}));
+                    this.UpdatePercentageInformations();
+                });
+            #endregion
+
             this.ReDrawCanvas();
         }
 
+        private void UpdatePercentageInformations()
+        {
+            this.c_CurrentClientNumberPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() =>
+            {
+                //this.c_CurrentClientNumberPercent_TextBlock.Text
+            }));
+            this.c_ClientLostPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() => 
+            { 
+                this.c_ClientLostPercent_TextBlock.Text = 
+                    100*this.m_City.NumberOfUnsatisfied/this.m_City.NumberOfClient + "%"; 
+            }));
+        }
+        
         private void ReDrawCanvas()
         {
             double height = this.c_City.ActualHeight,
@@ -115,6 +143,10 @@ namespace SimNum_Taxis
         #endregion
 
         private void c_City_MouseDown(object sender, MouseButtonEventArgs e)
-        { this.m_City.SpawnClient(e.GetPosition(this.c_City)); }
+        { 
+            this.m_City.SpawnClient(e.GetPosition(this.c_City));
+            this.UpdatePercentageInformations();
+            this.ReDrawCanvas();
+        }
     }
 }

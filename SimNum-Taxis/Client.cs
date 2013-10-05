@@ -12,8 +12,12 @@ namespace SimNum_Taxis
         public Client(Point position)
         {
             this.m_Position = position;
+            this.m_LifeTime = TimeSpan.FromSeconds(5);
         }
 
+        public TimeSpan LifeTime { get { return this.m_LifeTime; } }
+        private TimeSpan m_LifeTime;
+        
         private Point m_Position;
         public Point Position { get { return this.m_Position; } }
     };
