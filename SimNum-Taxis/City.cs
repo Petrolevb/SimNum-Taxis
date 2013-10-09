@@ -16,7 +16,9 @@ namespace SimNum_Taxis
         {
             this.m_TimeInApplication = new System.Timers.Timer(1000);
             this.m_TimeInApplication.Start();
-            this.m_RatioTime = 5;
+            this.m_timeTick = new System.Timers.Timer(20);
+            this.m_timeTick.Start();
+            this.m_RatioTime = 1;
             this.m_Taxis = new List<Taxi>();
             this.m_Clients = new List<Client>();
             this.m_SizeCity = 10;
@@ -24,12 +26,44 @@ namespace SimNum_Taxis
             this.m_CurrentNumberOfClient = 0;
             this.m_NumberOfUnsatisfied = 0;
         }
+        
+        #region Random uniform distribution methods
+        /// <summary> Chooses a random, evenly possible, position inside the city </summary>
+        private Point CalculateInitialTaxiPos()
+        {
+        	// TODO maybe calculer r différement...
+    		Random r = new Random();
+    		int theta = r.Next(0, 360);
+    		int dist = r.Next(0, m_SizeCity*1000);
+
+    		Point pos = new Point();
+    		pos.X  = Math.Cos(theta*180/Math.PI) * dist;
+    		pos.Y  = Math.Sin(theta*180/Math.PI) * dist;
+    		return pos;
+        }
+        
+        // TODO Gaussian random picker
+        /// <summary> Chooses a destination inside the city </summary>
+        private Point CalculateClientDestination()
+        {
+        	Random r = new Random();
+    		int theta = r.Next(0, 360);
+    		int dist = r.Next(0, m_SizeCity*1000);
+
+    		Point pos = new Point();
+    		pos.X  = Math.Cos(theta*180/Math.PI) * dist;
+    		pos.Y  = Math.Sin(theta*180/Math.PI) * dist;
+    		return pos;
+        }
+        
+        
+        #endregion
 
         #region Number of Taxis
         /// <summary> Adds a new Taxi </summary>
         public void AddsTaxi() 
-        { 
-            this.m_Taxis.Add(new Taxi()); 
+        {
+        	this.m_Taxis.Add(new Taxi(CalculateInitialTaxiPos()));
         }
         /// <summary> Removes a new Taxi </summary>
         public void RemovesTaxi() 
@@ -40,6 +74,17 @@ namespace SimNum_Taxis
         /// <return> Get Number of taxis </return>
         public int NumberOfTaxis { get { return this.m_Taxis.Count; } }
         private List<Taxi> m_Taxis;
+        ///<return>List of all taxis position</return>
+        public List<Point> TaxisPosition
+        {
+        	get
+        	{
+        		List<Point> res = new List<Point>();
+        		foreach(Taxi t in this.m_Taxis)
+        			res.Add(t.Position);
+        		return res;
+        	}
+        }
         #endregion
 
         #region Manage the size of the city
@@ -79,6 +124,7 @@ namespace SimNum_Taxis
         public void SpawnClient(Point position)
         {
             Client c = new Client(position);
+            c.Destination = CalculateClientDestination();
             this.m_Clients.Add(c);
             System.Threading.Timer t = new System.Threading.Timer(new TimerCallback(clientDied), c, 5000, Timeout.Infinite);
             
@@ -106,6 +152,16 @@ namespace SimNum_Taxis
             }
         }
         #endregion
+        
+        #region Ticks timer management
+        public event ElapsedEventHandler TimeTicked
+        {
+        	add { this.m_timeTick.Elapsed += value; }
+        	remove { this.m_timeTick.Elapsed -= value; }
+        }
+        private System.Timers.Timer m_timeTick;
+        #endregion
+        
 
         /// <summary> Allow to register to the city timer </summary>
         public event ElapsedEventHandler TimeElapsed

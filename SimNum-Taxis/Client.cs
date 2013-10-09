@@ -14,6 +14,9 @@ namespace SimNum_Taxis
             this.m_Position = position;
             this.m_LifeTime = TimeSpan.FromSeconds(5);
         }
+        
+        private Point m_destination;
+        public Point Destination { get { return m_destination; } set { m_destination = value; } }
 
         public TimeSpan LifeTime { get { return this.m_LifeTime; } }
         private TimeSpan m_LifeTime;

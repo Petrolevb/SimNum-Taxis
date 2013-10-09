@@ -25,7 +25,7 @@ namespace SimNum_Taxis
         public MainWindow()
         {
             InitializeComponent();
-            // Call the redraw function when the window size change
+            // Calls the redraw function when the window size change
             this.SizeChanged += new SizeChangedEventHandler((object o, SizeChangedEventArgs e) 
                                     => { this.Dispatcher.BeginInvoke((Action)(() 
                                         => { this.ReDrawCanvas(); })); });
@@ -33,22 +33,31 @@ namespace SimNum_Taxis
             this.c_Time_TextBlock.Text = this.m_Time.Hour + "H" + this.m_Time.Minute;
 
             this.m_City = new City();
-            this.m_City.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
+            
             #region Time Elapsed Event
-                {
-                    this.m_Time = this.m_Time.AddMinutes(this.m_City.RatioTime);
-                    // Need to use the Dispatcher :  Allow a thread
-                    // (here Timer from City) to access the graphical part
-                    this.c_Time_TextBlock.Dispatcher.Invoke((Action)(
-                        () => 
-                        { 
-                            this.c_Time_TextBlock.Text = 
-                                String.Format("{0,2}H{1,2}",
-                                    this.m_Time.Hour, this.m_Time.Minute);
-                            this.ReDrawCanvas();
-                        }));
-                };
+            this.m_City.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
+            {
+                this.m_Time = this.m_Time.AddMinutes(this.m_City.RatioTime);
+                // Need to use the Dispatcher :  Allow a thread
+                // (here Timer from City) to access the graphical part
+                this.c_Time_TextBlock.Dispatcher.Invoke((Action)(
+                    () => 
+                    { 
+                        this.c_Time_TextBlock.Text = 
+                            String.Format("{0,2}H{1,2}",
+                                this.m_Time.Hour, this.m_Time.Minute);
+                    }));
+            };
             #endregion
+            
+            #region TimeTick Event
+            this.m_City.TimeTicked += (object o, System.Timers.ElapsedEventArgs e) =>
+            {
+            	 this.ReDrawCanvas();
+            };
+            #endregion
+            
+            
             this.c_SizeCity_TextBlock.Text = this.m_City.SizeCity.ToString();
 
             this.m_City.SizeCityChanged += (object sender, EventArgs e) =>
@@ -81,7 +90,7 @@ namespace SimNum_Taxis
                 });
             #endregion
 
-            this.ReDrawCanvas();
+            // this.ReDrawCanvas();
         }
 
         private void UpdatePercentageInformations()
@@ -102,25 +111,59 @@ namespace SimNum_Taxis
         {
             double height = this.c_City.ActualHeight,
                    width = this.c_City.ActualWidth;
-            this.c_City.Children.Clear();
-            Ellipse el = new Ellipse()
-            {
-                Width = 25*this.m_City.SizeCity, Height = 25*this.m_City.SizeCity,
-                StrokeThickness = 2.0, Stroke = Brushes.Black
-            };
-
-            Canvas.SetTop(el, height/2.0 - el.Height/2.0);
-            Canvas.SetLeft(el, width/2.0- el.Width/2.0);
-            this.c_City.Children.Add(el);
-
-            foreach(Point clientPosition in this.m_City.ClientPositions)
-            {
-                TextBlock tb = new TextBlock() { Text = "C" };
-                Canvas.SetLeft(tb, clientPosition.X);
-                Canvas.SetTop(tb, clientPosition.Y);
-                this.c_City.Children.Add(tb);
-            }
+           this.c_City.Dispatcher.BeginInvoke((Action)(() => 
+           {
+	          	this.c_City.Children.Clear();
+	            Ellipse el = new Ellipse()
+	            {
+	                Width = 25*this.m_City.SizeCity, Height = 25*this.m_City.SizeCity,
+	                StrokeThickness = 2.0, Stroke = Brushes.Black
+	            };
+	
+	            Canvas.SetTop(el, height/2.0 - el.Height/2.0);
+	            Canvas.SetLeft(el, width/2.0- el.Width/2.0);
+	            this.c_City.Children.Add(el);
+	
+	            foreach(Point clientPosition in this.m_City.ClientPositions)
+	            {
+	            	TextBlock tb = new TextBlock() { Text = "C" };
+	                Canvas.SetLeft(tb, getCanvasXMatching(clientPosition.X));
+	                Canvas.SetTop(tb, getCanvasYMatching(clientPosition.Y));
+	                this.c_City.Children.Add(tb);
+	            }
+	            
+	            foreach(Point taxisPosition in this.m_City.TaxisPosition)
+	            {
+	            	TextBlock tb = new TextBlock() { Text = "T" };
+	            	Canvas.SetLeft(tb, getCanvasXMatching(taxisPosition.X));
+	            	Canvas.SetTop(tb, getCanvasYMatching(taxisPosition.Y));
+	            	this.c_City.Children.Add(tb);
+	            }
+              })); // End Dispatcher calling
         }
+        
+        #region Methods giving the matching position of a Point for the Canvas to draw it  
+        public double getCanvasXMatching(double x)
+        {
+        	double res = x;
+        	res /= this.m_City.SizeCity * 1000;
+			res *= 25*this.m_City.SizeCity/2;
+  	      	res	+= this.c_City.ActualWidth/2;
+        	
+        	return res;
+        }
+        
+        public double getCanvasYMatching(double y)
+        {
+        	double res = y;
+        	res /= this.m_City.SizeCity * 1000;
+			res *= 25*this.m_City.SizeCity/2;
+  	      	res	+= this.c_City.ActualHeight/2;
+        	
+        	return res;
+        }
+        #endregion
+        
 
         #region Manage the Faster Time Button
         private void c_FasterTime_Button_Click(object sender, RoutedEventArgs e)
@@ -149,9 +192,23 @@ namespace SimNum_Taxis
         { this.m_City.SizeCity++; }
         #endregion
 
+        /// <summary> Adds a client to the city at mouse position </summary>
         private void c_City_MouseDown(object sender, MouseButtonEventArgs e)
-        { 
-            this.m_City.SpawnClient(e.GetPosition(this.c_City));
+        {
+        	Point p = e.GetPosition(this.c_City);
+        	p.X -= this.c_City.ActualWidth/2;
+        	p.Y -= this.c_City.ActualHeight/2;
+        	// p € -actualSize .. actualSize
+        	
+    		p.X /= 25*this.m_City.SizeCity/2;
+    		p.Y /= 25*this.m_City.SizeCity/2;
+        	// p € -1 .. 1
+        	
+        	p.X *= this.m_City.SizeCity * 1000;
+        	p.Y *= this.m_City.SizeCity * 1000;
+        	// p € -10000 .. 10000
+        	
+            this.m_City.SpawnClient(p);
             this.UpdatePercentageInformations();
             this.ReDrawCanvas();
         }
