@@ -28,17 +28,17 @@ namespace SimNum_Taxis
         }
         
         #region Random uniform distribution methods
-        /// <summary> Chooses a random, evenly possible, position inside the city </summary>
+        /// <summary> Chooses a random, evenly probable, position inside the city (circle) </summary>
         private Point CalculateInitialTaxiPos()
         {
-        	// TODO maybe calculer r différement...
     		Random r = new Random();
-    		int theta = r.Next(0, 360);
-    		int dist = r.Next(0, m_SizeCity*1000);
+    		double u1 = r.NextDouble();
+    		double u2 = r.NextDouble();
 
-    		Point pos = new Point();
-    		pos.X  = Math.Cos(theta*180/Math.PI) * dist;
-    		pos.Y  = Math.Sin(theta*180/Math.PI) * dist;
+    		Point pos = new Point();    		
+    		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * m_SizeCity * 1000;
+    		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * m_SizeCity * 1000;
+
     		return pos;
         }
         
@@ -47,12 +47,13 @@ namespace SimNum_Taxis
         private Point CalculateClientDestination()
         {
         	Random r = new Random();
-    		int theta = r.Next(0, 360);
-    		int dist = r.Next(0, m_SizeCity*1000);
+    		double u1 = r.NextDouble();
+    		double u2 = r.NextDouble();
 
-    		Point pos = new Point();
-    		pos.X  = Math.Cos(theta*180/Math.PI) * dist;
-    		pos.Y  = Math.Sin(theta*180/Math.PI) * dist;
+    		Point pos = new Point();    		
+    		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * m_SizeCity * 1000;
+    		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * m_SizeCity * 1000;
+
     		return pos;
         }
         
