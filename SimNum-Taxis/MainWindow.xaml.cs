@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -42,7 +43,7 @@ namespace SimNum_Taxis
                 // (here Timer from City) to access the graphical part
                 this.c_Time_TextBlock.Dispatcher.Invoke((Action)(
                     () => 
-                    { 
+                    {
                         this.c_Time_TextBlock.Text = 
                             String.Format("{0,2}H{1,2}",
                                 this.m_Time.Hour, this.m_Time.Minute);
@@ -50,10 +51,11 @@ namespace SimNum_Taxis
             };
             #endregion
             
-            #region TimeTick Event
+            #region TimeTick Event. This loop is called 50 times a second.
             this.m_City.TimeTicked += (object o, System.Timers.ElapsedEventArgs e) =>
             {
-            	 this.ReDrawCanvas();
+            	this.m_City.tick();
+				this.ReDrawCanvas();
             };
             #endregion
             
@@ -114,40 +116,64 @@ namespace SimNum_Taxis
            this.c_City.Dispatcher.BeginInvoke((Action)(() => 
            {
 	          	this.c_City.Children.Clear();
+	          	
+	          	int diameter = (int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight);
+	          	
+				// City display
 	            Ellipse el = new Ellipse()
 	            {
-	                Width = 25*this.m_City.SizeCity, Height = 25*this.m_City.SizeCity,
+	                Width = diameter, Height = diameter,
 	                StrokeThickness = 2.0, Stroke = Brushes.Black
 	            };
+	            addShapeToCanvas(el, width/2.0 - el.Width/2.0, height/2.0 - el.Height/2.0);
 	
-	            Canvas.SetTop(el, height/2.0 - el.Height/2.0);
-	            Canvas.SetLeft(el, width/2.0- el.Width/2.0);
-	            this.c_City.Children.Add(el);
-	
-	            foreach(Point clientPosition in this.m_City.ClientPositions)
+	            // Clients display
+	            foreach(Client c in m_City.Clients)
 	            {
-	            	TextBlock tb = new TextBlock() { Text = "C" };
-	                Canvas.SetLeft(tb, getCanvasXMatching(clientPosition.X));
-	                Canvas.SetTop(tb, getCanvasYMatching(clientPosition.Y));
-	                this.c_City.Children.Add(tb);
+	            	int size = 10;
+	            	Ellipse e = new Ellipse()
+	            	{
+	            		Fill = new SolidColorBrush(c.Color),
+	            		Width = size, Height = size,
+	            		StrokeThickness = 1.0, Stroke = Brushes.Black
+	            	};
+	            	addShapeToCanvas(e, getCanvasXMatching(c.Position.X) - size/2, getCanvasYMatching(c.Position.Y) - size/2);
+
+	            	Line l1 = new Line() { StrokeThickness = 1.0, Stroke = new SolidColorBrush(c.Color), X1 = 0 , X2 = size, Y1 = 0, Y2 = size };
+	            	Line l2 = new Line() { StrokeThickness = 1.0, Stroke = new SolidColorBrush(c.Color), X1 = size , X2 = 0, Y1 = 0, Y2 = size };
+	            	addShapeToCanvas(l1, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
+	            	addShapeToCanvas(l2, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
 	            }
 	            
+	            // Taxis display
 	            foreach(Point taxisPosition in this.m_City.TaxisPosition)
 	            {
-	            	TextBlock tb = new TextBlock() { Text = "T" };
-	            	Canvas.SetLeft(tb, getCanvasXMatching(taxisPosition.X));
-	            	Canvas.SetTop(tb, getCanvasYMatching(taxisPosition.Y));
-	            	this.c_City.Children.Add(tb);
+	            	int size = 10;
+	            	Rectangle r = new Rectangle()
+	            	{
+	            		Fill = new SolidColorBrush(Colors.Yellow),
+	            		Width = size, Height = size,
+	            		StrokeThickness = 1.0, Stroke = Brushes.Black
+	            	};
+	            	addShapeToCanvas(r, getCanvasXMatching(taxisPosition.X) - size/2, getCanvasYMatching(taxisPosition.Y) - size/2);
 	            }
               })); // End Dispatcher calling
         }
         
-        #region Methods giving the matching position of a Point for the Canvas to draw it  
+        /// <summary> This methods adds a shape to the canvas at the given position </summary>
+        private void addShapeToCanvas(Shape sh, double left, double top)
+        {
+        	Canvas.SetLeft(sh, left);
+        	Canvas.SetTop(sh, top);
+        	this.c_City.Children.Add(sh);
+        }
+        
+        #region Methods giving the matching position of a Point for the Canvas to draw it. eg : x = 7000. It must return sthing like 400
         public double getCanvasXMatching(double x)
         {
         	double res = x;
         	res /= this.m_City.SizeCity * 1000;
-			res *= 25*this.m_City.SizeCity/2;
+        	res *=  ((int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight)) /2;
   	      	res	+= this.c_City.ActualWidth/2;
         	
         	return res;
@@ -157,7 +183,7 @@ namespace SimNum_Taxis
         {
         	double res = y;
         	res /= this.m_City.SizeCity * 1000;
-			res *= 25*this.m_City.SizeCity/2;
+			res *= ((int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight)) /2;
   	      	res	+= this.c_City.ActualHeight/2;
         	
         	return res;
@@ -200,8 +226,8 @@ namespace SimNum_Taxis
         	p.Y -= this.c_City.ActualHeight/2;
         	// p € -actualSize .. actualSize
         	
-    		p.X /= 25*this.m_City.SizeCity/2;
-    		p.Y /= 25*this.m_City.SizeCity/2;
+    		p.X /= ((int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight)) /2;
+    		p.Y /= ((int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight)) /2;
         	// p € -1 .. 1
         	
         	p.X *= this.m_City.SizeCity * 1000;

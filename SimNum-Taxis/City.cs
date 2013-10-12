@@ -11,14 +11,14 @@ namespace SimNum_Taxis
 {
     class City
     {
-        /// <summary> Ctor </summary>
+        /// <summary> Constructor </summary>
         public City()
         {
             this.m_TimeInApplication = new System.Timers.Timer(1000);
             this.m_TimeInApplication.Start();
             this.m_timeTick = new System.Timers.Timer(20);
             this.m_timeTick.Start();
-            this.m_RatioTime = 1;
+            this.m_RatioTime = 2;
             this.m_Taxis = new List<Taxi>();
             this.m_Clients = new List<Client>();
             this.m_SizeCity = 10;
@@ -55,16 +55,29 @@ namespace SimNum_Taxis
     		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * m_SizeCity * 1000;
 
     		return pos;
+        }        
+        #endregion
+        
+        #region Game ticks loop. There is 50 ticks per second.
+        public void tick()
+        {
+        	foreach(Taxi t in m_Taxis)
+        		t.move();
         }
         
-        
         #endregion
+        
 
         #region Number of Taxis
         /// <summary> Adds a new Taxi </summary>
         public void AddsTaxi() 
         {
-        	this.m_Taxis.Add(new Taxi(CalculateInitialTaxiPos()));
+        	// Speed of the taxi
+        	double  speed = 50; 		  // 50 km/h
+	    			speed *= 1000 / 60;   // 833.33 m/min
+	    			speed /= 50;	 	  // 16.66 m/min every tick
+        	
+        	this.m_Taxis.Add(new Taxi(CalculateInitialTaxiPos(), speed, this));
         }
         /// <summary> Removes a new Taxi </summary>
         public void RemovesTaxi() 
@@ -128,7 +141,7 @@ namespace SimNum_Taxis
             c.Destination = CalculateClientDestination();
             this.m_Clients.Add(c);
             System.Threading.Timer t = new System.Threading.Timer(new TimerCallback(clientDied), c, 5000, Timeout.Infinite);
-            
+
             this.m_NumberOfClient++; RaiseNumberOfClientChanged(this, new EventArgs());
             this.m_CurrentNumberOfClient++; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
         }
@@ -143,7 +156,7 @@ namespace SimNum_Taxis
         private List<Client> m_Clients;
         ///<return>List of all client position</return>
         public List<Point> ClientPositions 
-        { 
+        {
             get 
             {
                 List<Point> positions = new List<Point>();
@@ -151,6 +164,15 @@ namespace SimNum_Taxis
                     positions.Add(c.Position);
                 return positions;
             }
+        }
+        
+        ///<return>List of all clients</return>
+        public List<Client> Clients
+        {
+        	get
+        	{
+        		return m_Clients;
+        	}
         }
         #endregion
         
