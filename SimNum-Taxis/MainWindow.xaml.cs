@@ -23,9 +23,16 @@ namespace SimNum_Taxis
     {
         private DateTime m_Time;
         private City m_City;
+        
+        public static int a = 0;
+        
         public MainWindow()
         {
             InitializeComponent();
+            
+            // Changes the speed of the application when item is selected
+            c_ComboBox.SelectionChanged += c_SpeedComboBoxChanged;
+            
             // Calls the redraw function when the window size change
             this.SizeChanged += new SizeChangedEventHandler((object o, SizeChangedEventArgs e) 
                                     => { this.Dispatcher.BeginInvoke((Action)(() 
@@ -38,6 +45,8 @@ namespace SimNum_Taxis
             #region Time Elapsed Event
             this.m_City.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
             {
+            	a = 0;
+            	
                 this.m_Time = this.m_Time.AddMinutes(this.m_City.RatioTime);
                 // Need to use the Dispatcher :  Allow a thread
                 // (here Timer from City) to access the graphical part
@@ -51,7 +60,7 @@ namespace SimNum_Taxis
             };
             #endregion
             
-            #region TimeTick Event. This loop is called 50 times a second.
+            #region TimeTick Event.
             this.m_City.TimeTicked += (object o, System.Timers.ElapsedEventArgs e) =>
             {
             	this.m_City.tick();
@@ -91,8 +100,6 @@ namespace SimNum_Taxis
                     this.UpdatePercentageInformations();
                 });
             #endregion
-
-            // this.ReDrawCanvas();
         }
 
         private void UpdatePercentageInformations()
@@ -117,11 +124,11 @@ namespace SimNum_Taxis
            {
 	          	this.c_City.Children.Clear();
 	          	
-	          	int diameter = (int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight);
-	          	
 				// City display
+				int diameter = (int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight);
 	            Ellipse el = new Ellipse()
 	            {
+	            	Fill = new RadialGradientBrush(Colors.LightGray, Colors.DarkGray),
 	                Width = diameter, Height = diameter,
 	                StrokeThickness = 2.0, Stroke = Brushes.Black
 	            };
@@ -189,16 +196,21 @@ namespace SimNum_Taxis
         	return res;
         }
         #endregion
-        
+  
+        #region Manages the speed changing Combo Box
+        private void c_SpeedComboBoxChanged(object sender, RoutedEventArgs e)
+        {        	
+        	String s = ((ComboBox) sender).SelectedItem.ToString();
+        	String subs = s.Split(new Char[] {'x', ' '})[2];
+        	
+        	Console.WriteLine(s);
+        	Console.WriteLine(subs);
+        	
+        	this.m_City.RatioTime = int.Parse(subs);
+        }
+		#endregion
 
-        #region Manage the Faster Time Button
-        private void c_FasterTime_Button_Click(object sender, RoutedEventArgs e)
-        { this.m_City.RatioTime *= 10; }
-        private void c_FasterTime_Button_Released(object sender, RoutedEventArgs e)
-        { this.m_City.RatioTime /= 10; }
-        #endregion
-
-        #region Add or Remove a Taxi
+        #region Adds or removes a Taxi
         private void c_TaxisNumberMinus_Button_Click(object sender, RoutedEventArgs e)
         {
             this.m_City.RemovesTaxi();
@@ -235,8 +247,6 @@ namespace SimNum_Taxis
         	// p € -10000 .. 10000
         	
             this.m_City.SpawnClient(p);
-            this.UpdatePercentageInformations();
-            this.ReDrawCanvas();
         }
     }
 }

@@ -10,13 +10,16 @@ using System.Windows;
 namespace SimNum_Taxis
 {
     class City
-    {
+    { 
+    	public static int FPS = 40;
+    	public static int INTERVAL = 1000 / FPS;
+    	
         /// <summary> Constructor </summary>
         public City()
         {
             this.m_TimeInApplication = new System.Timers.Timer(1000);
             this.m_TimeInApplication.Start();
-            this.m_timeTick = new System.Timers.Timer(20);
+            this.m_timeTick = new System.Timers.Timer(INTERVAL);
             this.m_timeTick.Start();
             this.m_RatioTime = 2;
             this.m_Taxis = new List<Taxi>();
@@ -25,47 +28,78 @@ namespace SimNum_Taxis
             this.m_NumberOfClient = 0;
             this.m_CurrentNumberOfClient = 0;
             this.m_NumberOfUnsatisfied = 0;
+            
+            this.m_random = new Random(); 
         }
+        
+        private Random m_random;
         
         #region Random uniform distribution methods
         /// <summary> Chooses a random, evenly probable, position inside the city (circle) </summary>
-        private Point CalculateInitialTaxiPos()
+        private Point CalculatePositionInCircle()
         {
-    		Random r = new Random();
-    		double u1 = r.NextDouble();
-    		double u2 = r.NextDouble();
+    		double u1 = m_random.NextDouble();
+    		double u2 = m_random.NextDouble();
 
     		Point pos = new Point();    		
     		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * m_SizeCity * 1000;
     		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * m_SizeCity * 1000;
 
     		return pos;
+        }
+        
+        /// <summary> Tells wether to spawn a client </summary>
+        // TODO Change me
+        public bool TrySpawnClient()
+        {
+        	bool res = false;
+        	
+        	int proba = (int) (50 * INTERVAL / RatioTime);
+        	
+        	if((int) (m_random.NextDouble() * proba) == 1)
+        		res = true;
+        	
+        	return res;
         }
         
         // TODO Gaussian random picker
         /// <summary> Chooses a destination inside the city </summary>
         private Point CalculateClientDestination()
         {
-        	Random r = new Random();
-    		double u1 = r.NextDouble();
-    		double u2 = r.NextDouble();
+    		double u1 = m_random.NextDouble();
+    		double u2 = m_random.NextDouble();
 
     		Point pos = new Point();    		
     		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * m_SizeCity * 1000;
     		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * m_SizeCity * 1000;
 
     		return pos;
-        }        
-        #endregion
-        
-        #region Game ticks loop. There is 50 ticks per second.
-        public void tick()
-        {
-        	foreach(Taxi t in m_Taxis)
-        		t.move();
         }
         
+        // TODO Improve it. Currently it waits 5 minuts + r minuts, where r € [0 .. 60]
+		/// <summary> Give the life time of a client </summary>        
+        private double CalculateClientLifeTime()
+        {
+        	double res = 5;
+        	res += m_random.NextDouble() * 60;
+        	
+        	return res * FPS;
+        	//return res * FPS;
+        }
         #endregion
+        
+        
+        public void tick()
+        {
+        	if (TrySpawnClient())
+        		SpawnClient( CalculatePositionInCircle() );
+        	
+        	foreach(Client c in m_Clients)
+        		c.tick();
+
+        	foreach(Taxi t in m_Taxis)
+        		t.tick();
+        }
         
 
         #region Number of Taxis
@@ -73,11 +107,11 @@ namespace SimNum_Taxis
         public void AddsTaxi() 
         {
         	// Speed of the taxi
-        	double  speed = 50; 		  // 50 km/h
-	    			speed *= 1000 / 60;   // 833.33 m/min
-	    			speed /= 50;	 	  // 16.66 m/min every tick
+        	double  speed = 50; 		 	    // 50 km/h
+	    			speed *= 1000 / 60;   		// 833.33 m/min
+	    			speed /= 1000 / INTERVAL;	// 16.66 m/min every tick
         	
-        	this.m_Taxis.Add(new Taxi(CalculateInitialTaxiPos(), speed, this));
+        	this.m_Taxis.Add(new Taxi(CalculatePositionInCircle(), speed, this));
         }
         /// <summary> Removes a new Taxi </summary>
         public void RemovesTaxi() 
@@ -137,8 +171,7 @@ namespace SimNum_Taxis
         /// <param name="position">Position of the new client</param>
         public void SpawnClient(Point position)
         {
-            Client c = new Client(position);
-            c.Destination = CalculateClientDestination();
+        	Client c = new Client(this, position, CalculateClientDestination(), CalculateClientLifeTime());
             this.m_Clients.Add(c);
             System.Threading.Timer t = new System.Threading.Timer(new TimerCallback(clientDied), c, 5000, Timeout.Infinite);
 
@@ -146,15 +179,16 @@ namespace SimNum_Taxis
             this.m_CurrentNumberOfClient++; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
         }
         
-        private void clientDied(object sender)
+        public void clientDied(object sender)
         {
+        	Console.WriteLine("A client gave up");
             this.m_Clients.Remove((Client)sender);
             this.m_NumberOfUnsatisfied++; RaiseNumberOfUnsatisfiedChanged(this, new EventArgs());
             this.m_CurrentNumberOfClient--; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
         }
 
         private List<Client> m_Clients;
-        ///<return>List of all client position</return>
+        ///<return>List of all client positions</return>
         public List<Point> ClientPositions 
         {
             get 
