@@ -67,6 +67,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="RandomMethods.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Taxi.cs" />

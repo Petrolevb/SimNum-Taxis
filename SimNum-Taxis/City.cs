@@ -14,7 +14,7 @@ namespace SimNum_Taxis
     	public static int FPS = 40;
     	public static int INTERVAL = 1000 / FPS;
     	
-        /// <summary> Constructor </summary>
+        #region Constructor
         public City()
         {
             this.m_TimeInApplication = new System.Timers.Timer(1000);
@@ -28,81 +28,40 @@ namespace SimNum_Taxis
             this.m_NumberOfClient = 0;
             this.m_CurrentNumberOfClient = 0;
             this.m_NumberOfUnsatisfied = 0;
-            
-            this.m_random = new Random(); 
-        }
-        
-        private Random m_random;
-        
-        #region Random uniform distribution methods
-        /// <summary> Chooses a random, evenly probable, position inside the city (circle) </summary>
-        private Point CalculatePositionInCircle()
-        {
-    		double u1 = m_random.NextDouble();
-    		double u2 = m_random.NextDouble();
-
-    		Point pos = new Point();    		
-    		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * m_SizeCity * 1000;
-    		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * m_SizeCity * 1000;
-
-    		return pos;
-        }
-        
-        /// <summary> Tells wether to spawn a client </summary>
-        // TODO Change me
-        public bool TrySpawnClient()
-        {
-        	bool res = false;
-        	
-        	int proba = (int) (50 * INTERVAL / RatioTime);
-        	
-        	if((int) (m_random.NextDouble() * proba) == 1)
-        		res = true;
-        	
-        	return res;
-        }
-        
-        // TODO Gaussian random picker
-        /// <summary> Chooses a destination inside the city </summary>
-        private Point CalculateClientDestination()
-        {
-    		double u1 = m_random.NextDouble();
-    		double u2 = m_random.NextDouble();
-
-    		Point pos = new Point();    		
-    		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * m_SizeCity * 1000;
-    		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * m_SizeCity * 1000;
-
-    		return pos;
-        }
-        
-        // TODO Improve it. Currently it waits 5 minuts + r minuts, where r € [0 .. 60]
-		/// <summary> Give the life time of a client </summary>        
-        private double CalculateClientLifeTime()
-        {
-        	double res = 5;
-        	res += m_random.NextDouble() * 60;
-        	
-        	return res * FPS;
-        	//return res * FPS;
+            this.m_NumberOfPleased = 0;
+            this.m_random = new RandomMethods(); 
         }
         #endregion
         
-        
-        public void tick()
+		#region Ticks management
+        /// <summary> Main loop. Is called several times each second. </summary>
+        public void gameTick()
         {
-        	if (TrySpawnClient())
-        		SpawnClient( CalculatePositionInCircle() );
-        	
-        	foreach(Client c in m_Clients)
-        		c.tick();
+        	// TODO Change PositionInCircle According to day's time
+        	// Trys to spawn a new Client
+        /*	for(int i = 0; i < (int) RatioTime; i++)
+        		if(m_random.TrySpawnClient())
+	        		SpawnClient(m_random.CalculatePositionInCircle(m_SizeCity));
+        /**/	
 
+        	// Makes every taxi move
         	foreach(Taxi t in m_Taxis)
         		t.tick();
+
+        	// Makes every client move
+        	foreach(Client c in m_Clients)
+        		c.tick();
         }
         
-
-        #region Number of Taxis
+        private System.Timers.Timer m_timeTick;
+        public event ElapsedEventHandler TimeTicked
+        {
+        	add { this.m_timeTick.Elapsed += value; }
+        	remove { this.m_timeTick.Elapsed -= value; }
+        }
+		#endregion
+        
+        #region Taxis management
         /// <summary> Adds a new Taxi </summary>
         public void AddsTaxi() 
         {
@@ -111,9 +70,9 @@ namespace SimNum_Taxis
 	    			speed *= 1000 / 60;   		// 833.33 m/min
 	    			speed /= 1000 / INTERVAL;	// 16.66 m/min every tick
         	
-        	this.m_Taxis.Add(new Taxi(CalculatePositionInCircle(), speed, this));
+        	this.m_Taxis.Add(new Taxi(m_random.CalculatePositionInCircle(m_SizeCity), speed, this));
         }
-        /// <summary> Removes a new Taxi </summary>
+        /// <summary> Removes a Taxi </summary>
         public void RemovesTaxi() 
         { 
             if(this.m_Taxis.Count > 0) 
@@ -133,6 +92,18 @@ namespace SimNum_Taxis
         		return res;
         	}
         }
+        
+        /// <summary> Returns a list of taxis that have room left </summary>
+        private List<Taxi> NonFullTaxis()
+        {
+        	List<Taxi> res = new List<Taxi>();
+        	foreach(Taxi t in m_Taxis)
+        		if(t.hasRoomLeft())
+        			res.Add(t);
+        	
+        	return res;
+        }
+        
         #endregion
 
         #region Manage the size of the city
@@ -163,32 +134,43 @@ namespace SimNum_Taxis
         private int m_SizeCity;
         #endregion
 
-        #region Client Management
-        /// <summary>
-        /// Add a new client at the given position
-        /// Has to be private (or at least protected)
-        /// </summary>
-        /// <param name="position">Position of the new client</param>
+        #region Clients Management
+        /// <summary> Add a new client at the given position </summary>
         public void SpawnClient(Point position)
         {
-        	Client c = new Client(this, position, CalculateClientDestination(), CalculateClientLifeTime());
+        	Client c = new Client(this, position, m_random.CalculateClientDestination(m_SizeCity), m_random.CalculateClientLifeTime(FPS));
             this.m_Clients.Add(c);
-            System.Threading.Timer t = new System.Threading.Timer(new TimerCallback(clientDied), c, 5000, Timeout.Infinite);
+            
+            // TODO Choose the good taxi
+            List<Taxi> tmp = NonFullTaxis();
+            if(tmp.Count > 0)
+            {
+            	tmp[0].Target = c.Position;
+            }
 
             this.m_NumberOfClient++; RaiseNumberOfClientChanged(this, new EventArgs());
             this.m_CurrentNumberOfClient++; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
         }
         
-        public void clientDied(object sender)
+        /// <summary> Removes a client from the list and decreases the % accordingly </summary>
+        public void ClientDied(object sender)
         {
-        	Console.WriteLine("A client gave up");
+        	Console.WriteLine("A client gave up...");
             this.m_Clients.Remove((Client)sender);
             this.m_NumberOfUnsatisfied++; RaiseNumberOfUnsatisfiedChanged(this, new EventArgs());
             this.m_CurrentNumberOfClient--; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
         }
+        
+        public void ClientPleased(object sender)
+        {
+        	Console.WriteLine("A client reached his destination !");
+        	this.m_Clients.Remove((Client)sender);
+        	this.m_NumberOfPleased++; RaiseNumberOfPleasedChanged(this, new EventArgs());
+            this.m_CurrentNumberOfClient--; RaiseCurrentNumberOfClientChanged(this, new EventArgs());
+        }
 
         private List<Client> m_Clients;
-        ///<return>List of all client positions</return>
+        ///<return> List of all client positions </return>
         public List<Point> ClientPositions 
         {
             get 
@@ -200,7 +182,7 @@ namespace SimNum_Taxis
             }
         }
         
-        ///<return>List of all clients</return>
+        ///<return> List of all clients </return>
         public List<Client> Clients
         {
         	get
@@ -208,40 +190,77 @@ namespace SimNum_Taxis
         		return m_Clients;
         	}
         }
-        #endregion
         
-        #region Ticks timer management
-        public event ElapsedEventHandler TimeTicked
+        /// <returns> List of clients that have no taxis </returns>
+        public List<Client> AwaitingClients	
         {
-        	add { this.m_timeTick.Elapsed += value; }
-        	remove { this.m_timeTick.Elapsed -= value; }
+        	get
+        	{
+        		List<Client> res = new List<Client>();
+        		foreach(Client c in m_Clients)
+        			if(c.MyTaxi == null)
+        				res.Add(c);
+        		return res;
+        	}
         }
-        private System.Timers.Timer m_timeTick;
+        
+        /// <summary> Returns the client the closest to p or null if none exist </summary>
+        public Client getAwaitingClientClosestTo(Point p)
+        {
+        	Client res = null;
+        	foreach(Client c in AwaitingClients)
+        	{
+        		if(res==null) res = c;
+        		else if(Util.Distance(p, c.Position) < Util.Distance(p, res.Destination))
+        				res = c;
+        	}
+        	return res;
+        }
+        
+        /// <summary> Returns the client located at p, or null if it doesn't exist </summary>
+        public Client getClientWaitingAtPosition(Point p)
+        {
+        	foreach(Client c in AwaitingClients)
+				if(Util.Equivalent(c.Position, p))
+					return c;
+			return null;
+        }
         #endregion
         
+        #region City's variables
+        
+        // Manages the randomized aspects of the app
+		private RandomMethods m_random;
 
+        // Number of mins per seconds
+        private double m_RatioTime;
+        public double RatioTime { get { return this.m_RatioTime; } set { this.m_RatioTime = value; } }
+        
+        #region Client Numbers
+        private int m_NumberOfClient;
+        public int NumberOfClient { get { return this.m_NumberOfClient; } }
+
+        private int m_CurrentNumberOfClient;
+        public int CurrentNumberOfClient { get { return this.m_CurrentNumberOfClient; } }
+        
+        private int m_NumberOfUnsatisfied;
+        public int NumberOfUnsatisfied { get { return this.m_NumberOfUnsatisfied;  } }
+        
+        private int m_NumberOfPleased;
+        public int NumberOfPleased { get { return this.m_NumberOfPleased; } }
+        #endregion
+
+        #endregion
+
+        #region Events NumbersChanged
+        private System.Timers.Timer m_TimeInApplication;
         /// <summary> Allow to register to the city timer </summary>
         public event ElapsedEventHandler TimeElapsed
         {
             add { this.m_TimeInApplication.Elapsed += value; }
             remove { this.m_TimeInApplication.Elapsed -= value; }
         }
-        private System.Timers.Timer m_TimeInApplication;
-
-        // Number of min. per seconds
-        private double m_RatioTime;
-        public double RatioTime { get { return this.m_RatioTime; } set { this.m_RatioTime = value; } }
-
-        #region Client Numbers
-        public int NumberOfClient { get { return this.m_NumberOfClient; } }
-        private int m_NumberOfClient;
-        public int CurrentNumberOfClient { get { return this.m_CurrentNumberOfClient; } }
-        private int m_CurrentNumberOfClient;
-        public int NumberOfUnsatisfied { get { return this.m_NumberOfUnsatisfied;  } }
-        private int m_NumberOfUnsatisfied;
-        #endregion
-
-        #region events NumbersChanged
+        
         private EventHandler e_NumberOfClientChanged;
         public event EventHandler NumberOfClientChanged
         {
@@ -276,6 +295,18 @@ namespace SimNum_Taxis
         {
             if(e_NumberOfUnsatisfiedChanged != null)
                 e_NumberOfUnsatisfiedChanged(sender, data);
+        }
+        
+        private EventHandler e_NumberOfPleasedChanged;
+        public event EventHandler NumberOfPleasedChanged
+        {
+        	add { e_NumberOfPleasedChanged += value; }
+        	remove { e_NumberOfPleasedChanged -= value; }
+        }
+        private void RaiseNumberOfPleasedChanged(object sender, EventArgs data)
+        {
+        	if(e_NumberOfPleasedChanged != null)
+        		e_NumberOfPleasedChanged(sender, data);
         }
         #endregion
     };

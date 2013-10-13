@@ -48,7 +48,7 @@ namespace SimNum_Taxis
 		}
 		public static Boolean Equivalent(Point p1, Point p2)
 		{
-			return Equivalent(p1, p2, 5);
+			return Equivalent(p1, p2, 30);
 		}
 		
 	}

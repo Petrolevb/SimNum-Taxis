@@ -60,10 +60,10 @@ namespace SimNum_Taxis
             };
             #endregion
             
-            #region TimeTick Event.
+            #region TimeTick Event
             this.m_City.TimeTicked += (object o, System.Timers.ElapsedEventArgs e) =>
             {
-            	this.m_City.tick();
+            	this.m_City.gameTick();
 				this.ReDrawCanvas();
             };
             #endregion
@@ -99,6 +99,12 @@ namespace SimNum_Taxis
                         () => { this.c_ClientLost_TextBlock.Text = this.m_City.NumberOfUnsatisfied.ToString();}));
                     this.UpdatePercentageInformations();
                 });
+            this.m_City.NumberOfPleasedChanged += new EventHandler(
+                (object sender, EventArgs e) => { 
+                    this.c_ClientManaged_TextBlock.Dispatcher.BeginInvoke((Action)(
+                        () => { this.c_ClientManaged_TextBlock.Text = this.m_City.NumberOfPleased.ToString();}));
+                    this.UpdatePercentageInformations();
+                });
             #endregion
         }
 
@@ -111,8 +117,13 @@ namespace SimNum_Taxis
             }));
             this.c_ClientLostPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() => 
             { 
-                this.c_ClientLostPercent_TextBlock.Text = 
+                this.c_ClientLostPercent_TextBlock.Text =
                     100*this.m_City.NumberOfUnsatisfied/this.m_City.NumberOfClient + "%"; 
+            }));
+        	this.c_ClientManagedPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() => 
+            { 
+                this.c_ClientManagedPercent_TextBlock.Text =
+                    100*this.m_City.NumberOfPleased/this.m_City.NumberOfClient + "%"; 
             }));
         }
         
@@ -134,24 +145,6 @@ namespace SimNum_Taxis
 	            };
 	            addShapeToCanvas(el, width/2.0 - el.Width/2.0, height/2.0 - el.Height/2.0);
 	
-	            // Clients display
-	            foreach(Client c in m_City.Clients)
-	            {
-	            	int size = 10;
-	            	Ellipse e = new Ellipse()
-	            	{
-	            		Fill = new SolidColorBrush(c.Color),
-	            		Width = size, Height = size,
-	            		StrokeThickness = 1.0, Stroke = Brushes.Black
-	            	};
-	            	addShapeToCanvas(e, getCanvasXMatching(c.Position.X) - size/2, getCanvasYMatching(c.Position.Y) - size/2);
-
-	            	Line l1 = new Line() { StrokeThickness = 1.0, Stroke = new SolidColorBrush(c.Color), X1 = 0 , X2 = size, Y1 = 0, Y2 = size };
-	            	Line l2 = new Line() { StrokeThickness = 1.0, Stroke = new SolidColorBrush(c.Color), X1 = size , X2 = 0, Y1 = 0, Y2 = size };
-	            	addShapeToCanvas(l1, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
-	            	addShapeToCanvas(l2, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
-	            }
-	            
 	            // Taxis display
 	            foreach(Point taxisPosition in this.m_City.TaxisPosition)
 	            {
@@ -164,6 +157,28 @@ namespace SimNum_Taxis
 	            	};
 	            	addShapeToCanvas(r, getCanvasXMatching(taxisPosition.X) - size/2, getCanvasYMatching(taxisPosition.Y) - size/2);
 	            }
+	            
+	            // Clients display
+	            foreach(Client c in m_City.Clients)
+	            {
+	            	int size = (c.MyTaxi==null?10:5);
+	            	Ellipse e = new Ellipse()
+	            	{
+	            		Fill = new SolidColorBrush(c.Color),
+	            		Width = size, Height = size,
+	            		StrokeThickness = 1.0, Stroke = Brushes.Black
+	            	};
+	            	addShapeToCanvas(e, getCanvasXMatching(c.Position.X) - size/2, getCanvasYMatching(c.Position.Y) - size/2);
+
+	            	// Cross for client's destination
+	            	size = 10;
+	            	Line l1 = new Line() { StrokeThickness = 1.0, Stroke = new SolidColorBrush(c.Color), X1 = 0 , X2 = size, Y1 = 0, Y2 = size };
+	            	Line l2 = new Line() { StrokeThickness = 1.0, Stroke = new SolidColorBrush(c.Color), X1 = size , X2 = 0, Y1 = 0, Y2 = size };
+	            	addShapeToCanvas(l1, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
+	            	addShapeToCanvas(l2, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
+	            }
+	            
+	            
               })); // End Dispatcher calling
         }
         
