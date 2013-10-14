@@ -48,9 +48,26 @@ namespace SimNum_Taxis
 		{
 			return p2.X >= p1.X - prec && p2.X <= p1.X + prec && p2.Y >= p1.Y - prec && p2.Y <= p1.Y + prec;
 		}
+		
 		public static Boolean Equivalent(Point p1, Point p2)
 		{
 			return Equivalent(p1, p2, 30);
+		}
+		#endregion
+	
+		#region Gaussian function
+		/// <summary> Returns f(x), where f is a Gaussian with parameter sigma and nu. </summary>
+		public static double Gaussian(double x, double sigma, double nu)
+		{
+			// value of Math.Sqrt(2*Math.PI).... For performance optimisation
+			double sqrtOf2Pi = 2.50663;
+			
+			return Math.Exp((-(x - nu)*(x - nu))/(2*sigma*sigma)) / (sqrtOf2Pi * sigma);
+		}
+		
+		public static double Gaussian(double x)
+		{
+			return Gaussian(x, 1, 0);
 		}
 		#endregion
 	}
