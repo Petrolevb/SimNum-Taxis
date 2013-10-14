@@ -24,6 +24,7 @@ namespace SimNum_Taxis
         private DateTime m_Time;
         private City m_City;
         
+        // debug variable
         public static int a = 0;
         
         public MainWindow()
@@ -39,10 +40,9 @@ namespace SimNum_Taxis
                                         => { this.ReDrawCanvas(); })); });
             this.m_Time = DateTime.Today;
             this.c_Time_TextBlock.Text = this.m_Time.Hour + "H" + this.m_Time.Minute;
-
             this.m_City = new City();
             
-            #region Time Elapsed Event
+            #region Time events
             this.m_City.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
             {
             	a = 0;
@@ -58,21 +58,19 @@ namespace SimNum_Taxis
                                 this.m_Time.Hour, this.m_Time.Minute);
                     }));
             };
-            #endregion
             
-            #region TimeTick Event
             this.m_City.TimeTicked += (object o, System.Timers.ElapsedEventArgs e) =>
             {
+            	//Console.WriteLine(a++);
             	this.m_City.gameTick();
 				this.ReDrawCanvas();
             };
             #endregion
             
-            
-            this.c_SizeCity_TextBlock.Text = this.m_City.SizeCity.ToString();
-
-            this.m_City.SizeCityChanged += (object sender, EventArgs e) =>
             #region Size City changed event
+            this.c_SizeCity_TextBlock.Text = this.m_City.SizeCity.ToString();
+            this.m_City.SizeCityChanged += (object sender, EventArgs e) =>
+            
                 {
                     this.c_SizeCity_TextBlock.Dispatcher.Invoke((Action)(
                         () => { this.c_SizeCity_TextBlock.Text = this.m_City.SizeCity.ToString(); }));
@@ -87,10 +85,10 @@ namespace SimNum_Taxis
                         () => { this.c_ClientsNumber_TextBlock.Text = this.m_City.NumberOfClient.ToString(); }));
                     this.UpdatePercentageInformations();
                 });
-            this.m_City.CurrentNumberOfClientChanged += new EventHandler(
+            this.m_City.NumberOfAwaitingChanged += new EventHandler(
                 (object sender, EventArgs e) => {
-                    this.c_CurrentClientNumber_TextBlock.Dispatcher.BeginInvoke((Action)(
-                        () => { this.c_CurrentClientNumber_TextBlock.Text = this.m_City.CurrentNumberOfClient.ToString();}));
+                    this.c_ClientAwaiting_TextBlock.Dispatcher.BeginInvoke((Action)(
+                        () => { this.c_ClientAwaiting_TextBlock.Text = this.m_City.NumberOfAwaiting.ToString();}));
                     this.UpdatePercentageInformations();
                 });
             this.m_City.NumberOfUnsatisfiedChanged += new EventHandler(
@@ -105,38 +103,54 @@ namespace SimNum_Taxis
                         () => { this.c_ClientManaged_TextBlock.Text = this.m_City.NumberOfPleased.ToString();}));
                     this.UpdatePercentageInformations();
                 });
+            
+            this.m_City.NumberOfInsideTaxisChanged += new EventHandler(
+                (object sender, EventArgs e) => { 
+                    this.c_ClientsInsideTaxiPercent_TextBlock.Dispatcher.BeginInvoke((Action)(
+                        () => { this.c_ClientsInsideTaxis_TextBlock.Text = this.m_City.NumberInsideTaxis.ToString();}));
+                    this.UpdatePercentageInformations();
+                });
             #endregion
         }
 
+        #region Displays statistics
         private void UpdatePercentageInformations()
         {
-            this.c_CurrentClientNumberPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() =>
+            this.c_ClientAwaitingPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() =>
             {
-                this.c_CurrentClientNumberPercent_TextBlock.Text =
-                    100*this.m_City.CurrentNumberOfClient/this.m_City.NumberOfClient + "%";
+                this.c_ClientAwaitingPercent_TextBlock.Text =
+                	100*Math.Round((double) this.m_City.NumberOfAwaiting/this.m_City.NumberOfClient, 4) + "%";
             }));
             this.c_ClientLostPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() => 
             { 
                 this.c_ClientLostPercent_TextBlock.Text =
-                    100*this.m_City.NumberOfUnsatisfied/this.m_City.NumberOfClient + "%"; 
+                    100*Math.Round((double) this.m_City.NumberOfUnsatisfied/this.m_City.NumberOfClient, 4) + "%"; 
             }));
         	this.c_ClientManagedPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() => 
             { 
                 this.c_ClientManagedPercent_TextBlock.Text =
-                    100*this.m_City.NumberOfPleased/this.m_City.NumberOfClient + "%"; 
+                    100*Math.Round((double) this.m_City.NumberOfPleased/this.m_City.NumberOfClient, 4) + "%"; 
+            }));
+        	this.c_ClientsInsideTaxiPercent_TextBlock.Dispatcher.BeginInvoke((Action)(() => 
+            { 
+                this.c_ClientsInsideTaxiPercent_TextBlock.Text =
+                    100*Math.Round((double) this.m_City.NumberInsideTaxis/this.m_City.NumberOfClient, 4) + "%"; 
             }));
         }
+        #endregion
         
+        #region City's content drawing functions
+        /// <summary> Main city drawing method </summary>
         private void ReDrawCanvas()
         {
-            double height = this.c_City.ActualHeight,
-                   width = this.c_City.ActualWidth;
+            double width = this.c_City.ActualWidth,
+            	   height = this.c_City.ActualHeight;
            this.c_City.Dispatcher.BeginInvoke((Action)(() => 
            {
 	          	this.c_City.Children.Clear();
 	          	
-				// City display
-				int diameter = (int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight);
+				#region City display
+				int diameter = (int) Math.Min(width, height);
 	            Ellipse el = new Ellipse()
 	            {
 	            	Fill = new RadialGradientBrush(Colors.LightGray, Colors.DarkGray),
@@ -144,8 +158,9 @@ namespace SimNum_Taxis
 	                StrokeThickness = 2.0, Stroke = Brushes.Black
 	            };
 	            addShapeToCanvas(el, width/2.0 - el.Width/2.0, height/2.0 - el.Height/2.0);
-	
-	            // Taxis display
+				#endregion
+	            
+	            #region Taxis display
 	            foreach(Point taxisPosition in this.m_City.TaxisPosition)
 	            {
 	            	int size = 10;
@@ -157,10 +172,12 @@ namespace SimNum_Taxis
 	            	};
 	            	addShapeToCanvas(r, getCanvasXMatching(taxisPosition.X) - size/2, getCanvasYMatching(taxisPosition.Y) - size/2);
 	            }
+	            #endregion
 	            
-	            // Clients display
+	            #region Clients display
 	            foreach(Client c in m_City.Clients)
 	            {
+	            	// Clients looks smaller when inside a taxi
 	            	int size = (c.MyTaxi==null?10:5);
 	            	Ellipse e = new Ellipse()
 	            	{
@@ -177,12 +194,11 @@ namespace SimNum_Taxis
 	            	addShapeToCanvas(l1, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
 	            	addShapeToCanvas(l2, getCanvasXMatching(c.Destination.X) - size/2, getCanvasYMatching(c.Destination.Y) - size/2);
 	            }
-	            
-	            
+	            #endregion
               })); // End Dispatcher calling
         }
         
-        /// <summary> This methods adds a shape to the canvas at the given position </summary>
+         /// <summary> This methods adds a shape to the canvas at the given position </summary>
         private void addShapeToCanvas(Shape sh, double left, double top)
         {
         	Canvas.SetLeft(sh, left);
@@ -211,8 +227,10 @@ namespace SimNum_Taxis
         	return res;
         }
         #endregion
-  
-        #region Manages the speed changing Combo Box
+        
+        #endregion
+        
+        #region Combo Box setting the speed ratio
         private void c_SpeedComboBoxChanged(object sender, RoutedEventArgs e)
         {        	
         	String s = ((ComboBox) sender).SelectedItem.ToString();
@@ -225,7 +243,7 @@ namespace SimNum_Taxis
         }
 		#endregion
 
-        #region Adds or removes a Taxi
+        #region Buttons to add or remove a Taxi
         private void c_TaxisNumberMinus_Button_Click(object sender, RoutedEventArgs e)
         {
             this.m_City.RemovesTaxi();
@@ -238,20 +256,21 @@ namespace SimNum_Taxis
         }
         #endregion
 
-        #region Events that manage the size of the city
+        #region Buttons that manage the size of the city
         private void c_SizeCityMinus_Button_Click(object sender, RoutedEventArgs e)
         { this.m_City.SizeCity--; }
         private void c_SizeCityPlus_Button_Click(object sender, RoutedEventArgs e)
         { this.m_City.SizeCity++; }
         #endregion
 
+        #region MouseClickListener that adds clients when Canvas is clicked
         /// <summary> Adds a client to the city at mouse position </summary>
         private void c_City_MouseDown(object sender, MouseButtonEventArgs e)
         {
         	Point p = e.GetPosition(this.c_City);
         	p.X -= this.c_City.ActualWidth/2;
         	p.Y -= this.c_City.ActualHeight/2;
-        	// p € -actualSize .. actualSize
+        	// p € -actualSize .. actualSize      p = mousePosition in Canvas
         	
     		p.X /= ((int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight)) /2;
     		p.Y /= ((int) Math.Min(this.c_City.ActualWidth, this.c_City.ActualHeight)) /2;
@@ -259,9 +278,10 @@ namespace SimNum_Taxis
         	
         	p.X *= this.m_City.SizeCity * 1000;
         	p.Y *= this.m_City.SizeCity * 1000;
-        	// p € -10000 .. 10000
+        	// p € -10000 .. 10000         if r = 10...
         	
             this.m_City.SpawnClient(p);
         }
+        #endregion
     }
 }

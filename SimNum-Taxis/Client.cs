@@ -10,6 +10,7 @@ namespace SimNum_Taxis
 {
     class Client
     {
+    	#region Constructor
         public Client(City city, Point position, Point destination, double life)
         {
         	this.m_city = city;
@@ -21,7 +22,9 @@ namespace SimNum_Taxis
             
             Console.WriteLine("LifeTime : " + (int) life + " => " + (int) life/(City.FPS));
         }
+        #endregion
 
+        #region clientTick
         public void tick()
         {
         	// If a client is in the street, he becomes older
@@ -33,28 +36,21 @@ namespace SimNum_Taxis
         			m_city.ClientDied(this);
         	}
         	// If not, he follows his taxi
+        	// TODO move a little m_position
         	else
         		m_Position = m_MyTaxi.Position;
         }
+        #endregion
         
+        #region Method giving the client a random color
         private Color randomColor()
-        {
-        	List<Color> colors = new List<Color>();
-        	colors.Add(Colors.Orange);
-        	colors.Add(Colors.Red);
-        	colors.Add(Colors.YellowGreen);
-        	colors.Add(Colors.Brown);
-        	colors.Add(Colors.Blue);
-        	colors.Add(Colors.HotPink);
-        	colors.Add(Colors.Green);
-        	colors.Add(Colors.Lime);
-        	colors.Add(Colors.Magenta);
-        	colors.Add(Colors.Black);
-        	
+        {        	
         	Random r = new Random();
-        	return colors[(int) (r.NextDouble() * colors.Count)];
+        	return allColors[(int) (r.NextDouble() * allColors.Count())];
         }
+        #endregion
 
+        #region Client attributes
         private City m_city;
         
         // Taxi the client belongs to (can be null).
@@ -75,5 +71,20 @@ namespace SimNum_Taxis
         
         private Point m_Position;
         public Point Position { get { return this.m_Position; } }
+        
+        #region Enum of all possible client colors.
+        public static Color[] allColors = { Colors.Orange,
+    										Colors.Red,
+    										Colors.YellowGreen,
+	    									Colors.Brown,
+	    									Colors.Blue,
+	    									Colors.HotPink,
+	    									Colors.Green,
+	    									Colors.Lime,
+	    									Colors.Magenta,
+	    									Colors.Black };
+        #endregion
+        	
+        #endregion
     };
 }

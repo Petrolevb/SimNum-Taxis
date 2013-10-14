@@ -3,9 +3,6 @@ using System.Windows;
 
 namespace SimNum_Taxis
 {
-	/// <summary>
-	/// Description of Class1.
-	/// </summary>
 	public class RandomMethods
 	{
 		public RandomMethods()
@@ -16,7 +13,7 @@ namespace SimNum_Taxis
 		private Random m_random;
 		
 		/// <summary> Chooses a random, evenly probable, position inside the circle of size size </summary>
-        public Point CalculatePositionInCircle(int size)
+        public Point CalculateUniformPositionInCircle(int size)
         {
     		double u1 = m_random.NextDouble();
     		double u2 = m_random.NextDouble();
@@ -28,7 +25,8 @@ namespace SimNum_Taxis
     		return pos;
         }
 
-        // TODO Change me        
+        // TODO Change me
+        // TODO Change acordingly to day's time
         /// <summary> Tells wether to spawn a client </summary>
         public bool TrySpawnClient()
         {
@@ -56,7 +54,7 @@ namespace SimNum_Taxis
         }
         
         // TODO Improve it. Currently it waits 5 minuts + r minuts, where r € [0 .. 60]
-		/// <summary> Give the life time of a client </summary>        
+		/// <summary> Gives the life time of a client </summary>        
         public double CalculateClientLifeTime(int fps)
         {
         	double res = 5;

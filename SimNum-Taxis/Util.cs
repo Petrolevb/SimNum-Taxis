@@ -5,8 +5,7 @@ namespace SimNum_Taxis
 {
 	public class Util
 	{
-		public Util() { }
-		
+		#region Distance
 		/// <summary> Euclidian distance between p1 and p2. </summary>
 		public static double Distance(Point p1, Point p2)
 		{
@@ -15,8 +14,9 @@ namespace SimNum_Taxis
 			
 			return Math.Sqrt(dx*dx + dy*dy);
 		}
+		#endregion
 		
-		
+		#region Movement related methods
 		/// <summary> Returns the position of the movement of p by dX and dY, at maxSpeed. </summary>
 		public static Point MoveBy(Point p, double dX, double dY)
 		{
@@ -40,7 +40,9 @@ namespace SimNum_Taxis
 
 			return Math.Atan2(dy, dx) * 180 / Math.PI;
 		}
+		#endregion
 		
+		#region Equivalent methods
 		/// <summary> Returns true if p1 and p2 has nearly identical values </summary>
 		public static Boolean Equivalent(Point p1, Point p2, double prec)
 		{
@@ -50,6 +52,6 @@ namespace SimNum_Taxis
 		{
 			return Equivalent(p1, p2, 30);
 		}
-		
+		#endregion
 	}
 }
