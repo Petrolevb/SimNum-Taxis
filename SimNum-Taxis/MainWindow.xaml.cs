@@ -21,7 +21,6 @@ namespace SimNum_Taxis
     /// </summary>
     public partial class MainWindow : Window
     {
-        private DateTime m_Time;
         private City m_City;
         
         // debug variable
@@ -30,6 +29,7 @@ namespace SimNum_Taxis
         public MainWindow()
         {
             InitializeComponent();
+            this.m_City = new City();
             
             // Changes the speed of the application when item is selected
             c_ComboBox.SelectionChanged += c_SpeedComboBoxChanged;
@@ -38,16 +38,15 @@ namespace SimNum_Taxis
             this.SizeChanged += new SizeChangedEventHandler((object o, SizeChangedEventArgs e) 
                                     => { this.Dispatcher.BeginInvoke((Action)(() 
                                         => { this.ReDrawCanvas(); })); });
-            this.m_Time = DateTime.Today;
-            this.c_Time_TextBlock.Text = this.m_Time.Hour + "H" + this.m_Time.Minute;
-            this.m_City = new City();
+            this.m_City.Time = DateTime.Today;
+            this.c_Time_TextBlock.Text = this.m_City.Time.Hour + "H" + this.m_City.Time.Minute;
             
             #region Time events
             this.m_City.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
             {
             	a = 0;
             	
-                this.m_Time = this.m_Time.AddMinutes(this.m_City.RatioTime);
+                this.m_City.Time = this.m_City.Time.AddMinutes(this.m_City.RatioTime);
                 // Need to use the Dispatcher :  Allow a thread
                 // (here Timer from City) to access the graphical part
                 this.c_Time_TextBlock.Dispatcher.Invoke((Action)(
@@ -55,7 +54,7 @@ namespace SimNum_Taxis
                     {
                         this.c_Time_TextBlock.Text = 
                             String.Format("{0,2}H{1,2}",
-                                this.m_Time.Hour, this.m_Time.Minute);
+                                this.m_City.Time.Hour, this.m_City.Time.Minute);
                     }));
             };
             

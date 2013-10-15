@@ -53,6 +53,11 @@ namespace SimNum_Taxis
 		{
 			return Equivalent(p1, p2, 30);
 		}
+		
+		public static Boolean Equivalent(double x1, double x2, double prec)
+		{
+			return x2 >= x1 - prec && x2 <= x1 + prec;
+		}
 		#endregion
 	
 		#region Gaussian function
@@ -70,5 +75,18 @@ namespace SimNum_Taxis
 			return Gaussian(x, 1, 0);
 		}
 		#endregion
+		
+		#region Double Gaussian function
+		 // TODO Check fonction "Laurentziny"
+        public static double doubleGaussian(double x)
+        {
+        	double gaussian1 = 5 * Util.Gaussian(x, 3.5, 12);
+        	double gaussian2 = -2 * Util.Gaussian(x, 1.8, 12);
+        		
+        	Console.WriteLine(3.5 * (gaussian1 + gaussian2));
+        	
+        	return 3.5 * (gaussian1 + gaussian2) + 0.1;
+        }
+        #endregion
 	}
 }

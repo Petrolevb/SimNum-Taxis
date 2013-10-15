@@ -42,7 +42,7 @@ namespace SimNum_Taxis
         	// TODO Change PositionInCircle According to day's time
         	// Trys to spawn a new Client
         	for(int i = 0; i < (int) RatioTime; i++)
-        		if(m_random.TrySpawnClient())
+        		if(m_random.TrySpawnClient(m_Time))
 	        		SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
         /**/	
 
@@ -250,6 +250,8 @@ namespace SimNum_Taxis
         // Number of mins per seconds
         private double m_RatioTime;
         public double RatioTime { get { return this.m_RatioTime; } set { this.m_RatioTime = value; } }
+        private DateTime m_Time;
+        public DateTime Time { get { return m_Time; } set { m_Time = value; } }
         
         #region Client Numbers
         private int m_NumberOfClient;

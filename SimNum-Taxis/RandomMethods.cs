@@ -25,17 +25,19 @@ namespace SimNum_Taxis
     		return pos;
         }
 
-        // TODO Change me
-        // TODO Change acordingly to day's time
+        // TODO improve me !!!
         /// <summary> Tells wether to spawn a client </summary>
-        public bool TrySpawnClient()
+        public bool TrySpawnClient(DateTime time)
         {
+        	double hourOfDay = time.Hour + (double) time.Minute / 60;
+        	
         	bool res = false;
-        	int proba = 300;
+        	int proba = 200;
         	
         	if((int) (m_random.NextDouble() * proba) == 1)
-        		res = true;
-        	
+        		if(m_random.NextDouble() <= Util.doubleGaussian(hourOfDay))
+        			res = true;
+
         	return res;
         }
         
@@ -62,9 +64,6 @@ namespace SimNum_Taxis
         	
         	return res * fps;
         }
-		
-		
-		
 		
 		
 		
