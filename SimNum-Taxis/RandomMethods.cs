@@ -43,12 +43,12 @@ namespace SimNum_Taxis
         
         // TODO Gaussian random picker
         /// <summary> Chooses a destination inside the city </summary>
-        public Point CalculateClientDestination(int size)
+        public Point CalculateClientDestination(Point clientPosition, int size)
         {
     		double u1 = m_random.NextDouble();
     		double u2 = m_random.NextDouble();
 
-    		Point pos = new Point();    		
+    		Point pos = new Point();
     		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * size * 1000;
     		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * size * 1000;
 

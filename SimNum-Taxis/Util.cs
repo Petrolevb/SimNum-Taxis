@@ -77,13 +77,10 @@ namespace SimNum_Taxis
 		#endregion
 		
 		#region Double Gaussian function
-		 // TODO Check fonction "Laurentziny"
         public static double doubleGaussian(double x)
         {
         	double gaussian1 = 5 * Util.Gaussian(x, 3.5, 12);
-        	double gaussian2 = -2 * Util.Gaussian(x, 1.8, 12);
-        		
-        	Console.WriteLine(3.5 * (gaussian1 + gaussian2));
+        	double gaussian2 = -2.2 * Util.Gaussian(x, 1.8, 12);
         	
         	return 3.5 * (gaussian1 + gaussian2) + 0.1;
         }

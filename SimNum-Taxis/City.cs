@@ -41,7 +41,7 @@ namespace SimNum_Taxis
         {
         	// TODO Change PositionInCircle According to day's time
         	// Trys to spawn a new Client
-        	for(int i = 0; i < (int) RatioTime; i++)
+      /*  	for(int i = 0; i < (int) RatioTime; i++)
         		if(m_random.TrySpawnClient(m_Time))
 	        		SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
         /**/	
