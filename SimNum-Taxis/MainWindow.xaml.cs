@@ -22,6 +22,8 @@ namespace SimNum_Taxis
     public partial class MainWindow : Window
     {
         private City m_City;
+        private System.Threading.Thread m_thread;
+        private bool isRunning = false;
         
         // debug variable
         public static int a = 0;
@@ -40,31 +42,6 @@ namespace SimNum_Taxis
                                         => { this.ReDrawCanvas(); })); });
             this.m_City.Time = DateTime.Today;
             this.c_Time_TextBlock.Text = this.m_City.Time.Hour + "H" + this.m_City.Time.Minute;
-            
-            #region Time events
-            this.m_City.TimeElapsed += (object o, System.Timers.ElapsedEventArgs e) =>
-            {
-            	a = 0;
-            	
-                this.m_City.Time = this.m_City.Time.AddMinutes(this.m_City.RatioTime);
-                // Need to use the Dispatcher :  Allow a thread
-                // (here Timer from City) to access the graphical part
-                this.c_Time_TextBlock.Dispatcher.Invoke((Action)(
-                    () => 
-                    {
-                        this.c_Time_TextBlock.Text = 
-                            String.Format("{0,2}H{1,2}",
-                                this.m_City.Time.Hour, this.m_City.Time.Minute);
-                    }));
-            };
-            
-            this.m_City.TimeTicked += (object o, System.Timers.ElapsedEventArgs e) =>
-            {
-            	//Console.WriteLine(a++);
-            	this.m_City.gameTick();
-				this.ReDrawCanvas();
-            };
-            #endregion
             
             #region Size City changed event
             this.c_SizeCity_TextBlock.Text = this.m_City.SizeCity.ToString();
@@ -110,7 +87,111 @@ namespace SimNum_Taxis
                     this.UpdatePercentageInformations();
                 });
             #endregion
+            
+            this.m_thread = new System.Threading.Thread(this.run);
+            if(isRunning == false)
+            {	
+            	isRunning = true;
+            	this.m_thread.Start();
+            }
         }
+        
+        /// <summary> Exits the program and joins the thread when quited. </summary>
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+			isRunning = false;
+			System.Environment.Exit(0);
+		}
+        
+        
+        #region Thread loop
+        private void run()
+        {
+			double secondsPerTick = 1 / ((double) City.FPS);
+
+			int ticks = 0;
+			int fps = 0;
+			double delta = 0;
+			long lastTime = DateTime.Now.ToFileTime();
+
+			while(isRunning)
+			{
+				long now = DateTime.Now.ToFileTime();
+				long elapsedTime = now - lastTime;
+				lastTime = now;
+	
+				if(elapsedTime < 0)
+					elapsedTime = 0;
+				if(elapsedTime > 10000000)
+					elapsedTime = 10000000;
+	
+				delta += elapsedTime / 10000000.0;
+				bool ticked = false;
+	
+				while(delta > secondsPerTick)
+				{
+					tick();
+					ticks++;
+	
+					delta -= secondsPerTick;
+					ticked = true;
+	
+					if(ticks % City.FPS == 0)
+					{
+						Console.WriteLine("fps : " + fps);
+						lastTime += 1000;
+						fps = 0;
+					}
+				}
+	
+				if(ticked)
+				{
+					render();
+					fps++;
+				}
+				else
+				{
+					System.Threading.Thread.Sleep(1);
+				}
+				
+			}
+			m_thread.Join();
+        }
+        
+        
+        
+        private void tick()
+        {
+        	//Console.WriteLine(a++);
+            this.m_City.gameTick();
+
+            this.m_City.Time = this.m_City.Time.AddMinutes(this.m_City.RatioTime / City.FPS);
+            // Need to use the Dispatcher :  Allow a thread
+            // (here Timer from City) to access the graphical part
+            this.c_Time_TextBlock.Dispatcher.Invoke((Action)(
+                () => 
+                {
+                    this.c_Time_TextBlock.Text = 
+                        String.Format("{0,2}H{1,2}",
+                            this.m_City.Time.Hour, this.m_City.Time.Minute);
+                }));
+        }
+        
+        
+        private void render()
+        {
+        	this.ReDrawCanvas();
+        }
+        
+        
+        
+        
+        
+        #endregion
+        
+        
+        
 
         #region Displays statistics
         private void UpdatePercentageInformations()

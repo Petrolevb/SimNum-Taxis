@@ -53,8 +53,11 @@ namespace SimNum_Taxis
     			// Possibly updates the target.
     												// TODO awaiting untargeted client
     			Client possibleNewClient = taxi.MyCity.getAwaitingClientClosestTo(taxi.Position);
-    			if(possibleNewClient == null && distance == -1)
-    				taxi.Target = new Point(-99999, -99999);
+    			if(possibleNewClient == null)
+    			{
+    				if(distance == -1)
+    					taxi.Target = new Point(-99999, -99999);
+    			}
     			else
     			{
     				if( distance == -1 || Util.Distance(possibleNewClient.Position, taxi.Position) < distance)
@@ -102,12 +105,14 @@ namespace SimNum_Taxis
 			// If not, the taxi reached a client destination => Success
 			if(!targetWasAClient)
 			{
-				foreach(Client c in taxi.Clients)
-					if(Util.Equivalent(taxi.Target, c.Destination))
+				for(int i = 0; i < taxi.Clients.Count; i++)
+        		{
+					if(Util.Equivalent(taxi.Target, taxi.Clients[i].Destination))
 					{
-						taxi.MyCity.ClientPleased(c);
-						taxi.Clients.Remove(c);
+						taxi.MyCity.ClientPleased(taxi.Clients[i]);
+						taxi.Clients.Remove(taxi.Clients[i]);
 					}
+        		}
 			}
 			AI.RefreshDestination(taxi);
     	}

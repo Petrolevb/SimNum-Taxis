@@ -18,10 +18,6 @@ namespace SimNum_Taxis
         #region Constructor
         public City()
         {
-            this.m_TimeInApplication = new System.Timers.Timer(1000);
-            this.m_TimeInApplication.Start();
-            this.m_timeTick = new System.Timers.Timer(INTERVAL);
-            this.m_timeTick.Start();
             this.m_RatioTime = 1;
             this.m_Taxis = new List<Taxi>();
             this.m_Clients = new List<Client>();
@@ -51,15 +47,11 @@ namespace SimNum_Taxis
         		t.tick();
 
         	// Makes every client move
-        	foreach(Client c in m_Clients)
-        		c.tick();
-        }
-        
-        private System.Timers.Timer m_timeTick;
-        public event ElapsedEventHandler TimeTicked
-        {
-        	add { this.m_timeTick.Elapsed += value; }
-        	remove { this.m_timeTick.Elapsed -= value; }
+        	for(int i = 0; i < m_Clients.Count; i++)
+        	{
+        		if(m_Clients[i].tick() == false)
+        			i--;
+        	}
         }
 		#endregion
         
@@ -273,14 +265,6 @@ namespace SimNum_Taxis
         #endregion
 
         #region Events NumbersChanged
-        private System.Timers.Timer m_TimeInApplication;
-        /// <summary> Allow to register to the city timer </summary>
-        public event ElapsedEventHandler TimeElapsed
-        {
-            add { this.m_TimeInApplication.Elapsed += value; }
-            remove { this.m_TimeInApplication.Elapsed -= value; }
-        }
-        
         private EventHandler e_NumberOfClientChanged;
         public event EventHandler NumberOfClientChanged
         {
