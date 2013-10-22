@@ -10,10 +10,8 @@ using System.Windows;
 namespace SimNum_Taxis
 {
     class City
-    { 
-    	// TODO CORRECT ME !!!!
-    	public static int FPS = 40;
-    	public static int INTERVAL = 1000 / FPS;
+    {
+    	public static int FPS = 60;
     	
         #region Constructor
         public City()
@@ -34,13 +32,13 @@ namespace SimNum_Taxis
 		#region Ticks management
         /// <summary> Main loop. Is called several times each second. </summary>
         public void gameTick()
-        {
+        {       	
         	// TODO Change PositionInCircle According to day's time
-        	// Trys to spawn a new Client
+        	// Tries to spawn a new Client
         	for(int i = 0; i < (int) RatioTime; i++)
         		if(m_random.TrySpawnClient(m_Time))
-	        		SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
-        /**/	
+        			SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
+        	/**/
 
         	// Makes every taxi move
         	foreach(Taxi t in m_Taxis)
@@ -62,7 +60,7 @@ namespace SimNum_Taxis
         	// Speed of the taxi
         	double  speed = 50; 		 	    // 50 km/h
 	    			speed *= 1000 / 60;   		// 833.33 m/min
-	    			speed /= 1000 / INTERVAL;	// 16.66 m/min every tick
+	    			speed /= FPS;				// 16.66 m/min every tick
         	
         	this.m_Taxis.Add(new Taxi(m_random.CalculateUniformPositionInCircle(m_SizeCity), speed, this));
         }
@@ -72,14 +70,18 @@ namespace SimNum_Taxis
             if(this.m_Taxis.Count > 0) 
             {
             	foreach(Client c in this.m_Taxis[this.NumberOfTaxis - 1].Clients)
+            	{
+            		this.m_NumberInsideTaxis--; RaiseNumberOfInsideTaxisChanged(this, new EventArgs());
+            		this.m_NumberOfAwaiting++;
             		ClientDied(c);
+            	}
             	this.m_Taxis.RemoveAt(this.NumberOfTaxis-1);
             }
         }
         /// <return> Get Number of taxis </return>
         public int NumberOfTaxis { get { return this.m_Taxis.Count; } }
         private List<Taxi> m_Taxis;
-        ///<return>List of all taxis position</return>
+        ///<return> List of all taxis position </return>
         public List<Point> TaxisPosition
         {
         	get
@@ -98,7 +100,6 @@ namespace SimNum_Taxis
         	foreach(Taxi t in m_Taxis)
         		if(t.hasRoomLeft())
         			res.Add(t);
-        	
         	return res;
         }
         
@@ -116,7 +117,8 @@ namespace SimNum_Taxis
             if(e_SizeCityChanged != null)
                 e_SizeCityChanged(sender, data);
         }
-        /// <summary> Size of City in km </summary>
+        /// <summary> Size of the City in km </summary>
+        private int m_SizeCity;
         public int SizeCity
         {
             get { return this.m_SizeCity; }
@@ -129,7 +131,6 @@ namespace SimNum_Taxis
                 }
             }
         }
-        private int m_SizeCity;
         #endregion
 
         #region Clients Management
@@ -148,7 +149,7 @@ namespace SimNum_Taxis
         /// <summary> Removes a client from the list and decreases the % accordingly </summary>
         public void ClientDied(object sender)
         {
-        	Console.WriteLine("A client gave up...");
+        	//Console.WriteLine("A client gave up...");
             this.m_Clients.Remove((Client)sender);
             
             this.m_NumberOfAwaiting--; RaiseNumberOfAwaitingChanged(this, new EventArgs());
@@ -157,7 +158,7 @@ namespace SimNum_Taxis
         
         public void ClientPleased(object sender)
         {
-        	Console.WriteLine("A client reached his destination !");
+        	//Console.WriteLine("A client reached his destination !");
         	this.m_Clients.Remove((Client)sender);
         	
         	this.m_NumberInsideTaxis--; RaiseNumberOfInsideTaxisChanged(this, new EventArgs());
@@ -166,7 +167,7 @@ namespace SimNum_Taxis
         
         public void ClientPickedUp()
         {
-        	Console.WriteLine("A taxi picked up a Client !");
+        //	Console.WriteLine("A taxi picked up a Client !");
         	
         	this.m_NumberInsideTaxis++; RaiseNumberOfInsideTaxisChanged(this, new EventArgs());
         	this.m_NumberOfAwaiting--; RaiseNumberOfAwaitingChanged(this, new EventArgs());
@@ -174,6 +175,9 @@ namespace SimNum_Taxis
 
         #region Clients accessors
         private List<Client> m_Clients;
+        
+        ///<return> List of all clients </return>
+        public List<Client> Clients { get { return m_Clients; } }
         
         ///<return> List of all client positions </return>
         public List<Point> ClientPositions 
@@ -187,16 +191,7 @@ namespace SimNum_Taxis
             }
         }
         
-        ///<return> List of all clients </return>
-        public List<Client> Clients
-        {
-        	get
-        	{
-        		return m_Clients;
-        	}
-        }
-        
-        /// <returns> List of clients that have no taxis </returns>
+        /// <returns> List of clients that have no taxis. </returns>
         public List<Client> AwaitingClients	
         {
         	get
@@ -231,15 +226,13 @@ namespace SimNum_Taxis
 			return null;
         }
         #endregion
-        
         #endregion
         
-        #region City's variables
-        
-        // Manages the randomized aspects of the app
+        #region City's variables       
+        // Manages the randomized aspects of the game
 		private RandomMethods m_random;
 
-        // Number of mins per seconds
+        // Number of minuts in game per seconds in real world
         private double m_RatioTime;
         public double RatioTime { get { return this.m_RatioTime; } set { this.m_RatioTime = value; } }
         private DateTime m_Time;
@@ -261,7 +254,6 @@ namespace SimNum_Taxis
         private int m_NumberInsideTaxis;
         public int NumberInsideTaxis { get { return this.m_NumberInsideTaxis; } }
         #endregion
-
         #endregion
 
         #region Events NumbersChanged

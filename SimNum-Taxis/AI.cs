@@ -11,13 +11,13 @@ namespace SimNum_Taxis
 		public static void AssignBestTaxiToCLient(Client c, List<Taxi> availableTaxis)
         {
             availableTaxis = availableTaxis.OrderBy((Func<Taxi, double>)(
-            	(Taxi t1) => { return Util.Distance(t1.Position, c.Position); }))
+            	(Taxi t) => { return Util.Distance(t.Position, c.Position); }))
             	.ToList();
-        	
+
 			// TODO add comparaison between angles, not distances.
 			
-			// If the closest taxi has a destination farther than the client c, we send the closest taxi
-			// If not, we try  with 2nd closest taxi and, so on...
+			// If the closest taxi has his current destination farther than the client c, we send the closest taxi
+			// If not, we try  with 2nd closest taxi and so on...
         	if(availableTaxis.Count > 0)
        			foreach(Taxi t in availableTaxis)
 	       			if(Util.Distance(t.Position, c.Position) < Util.Distance(t.Position, t.Target))
@@ -42,6 +42,8 @@ namespace SimNum_Taxis
     		// Otherwise, it goes to the only clients' destination OR to the closest unprocessed client
     		else
     		{
+    			// TODO Improve this whole part !
+    			
     			double distance = -1;
     			if(taxi.Clients.Count == 1)
     			{
@@ -49,7 +51,7 @@ namespace SimNum_Taxis
     				distance = Util.Distance(taxi.Target, taxi.Position);
     			}
     			
-    			// Seeks the closest client and compare the distances between him and the current target.
+    			// Seeks the closest client and compares the distances between him and the current target.
     			// Possibly updates the target.
     												// TODO awaiting untargeted client
     			Client possibleNewClient = taxi.MyCity.getAwaitingClientClosestTo(taxi.Position);
@@ -79,15 +81,14 @@ namespace SimNum_Taxis
     		}
     	}
     	
-    	// TODO What if a client despawns ?
     	/// <summary> Deals with taxi's arrival to its target and updates the destination. </summary>
 		/// <remarks> This method is only called when taxi has reached its target. </remarks>
     	public static void ManageArrival(Taxi taxi)
     	{
-    		// Exit if taxi isn't arrived yet
+    		// Exits if taxi isn't arrived yet. This is a safety line.
 			if(!Util.Equivalent(taxi.Target, taxi.Position))
 				return;
-		
+
 			// Did the taxi pick up a client ?
 			bool targetWasAClient = false;
 			if(taxi.Clients.Count < 2)

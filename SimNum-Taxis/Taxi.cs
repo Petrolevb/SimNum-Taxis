@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 
 namespace SimNum_Taxis
-{
-	// TODO Create AI class
-	
+{	
     class Taxi
     {
     	#region Constructor

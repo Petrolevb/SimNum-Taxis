@@ -28,6 +28,7 @@ namespace SimNum_Taxis
         // debug variable
         public static int a = 0;
         
+        #region Constructor
         public MainWindow()
         {
             InitializeComponent();
@@ -95,21 +96,13 @@ namespace SimNum_Taxis
             	this.m_thread.Start();
             }
         }
+        #endregion
         
-        /// <summary> Exits the program and joins the thread when quited. </summary>
-		protected override void OnClosed(EventArgs e)
-		{
-			base.OnClosed(e);
-			isRunning = false;
-			System.Environment.Exit(0);
-		}
-        
-        
-        #region Thread loop
+        #region Thread functions
+        /// <summary> Executes FPS gameTicks per second and tries to render FPS times per second. </summary>
         private void run()
         {
 			double secondsPerTick = 1 / ((double) City.FPS);
-
 			int ticks = 0;
 			int fps = 0;
 			double delta = 0;
@@ -121,10 +114,8 @@ namespace SimNum_Taxis
 				long elapsedTime = now - lastTime;
 				lastTime = now;
 	
-				if(elapsedTime < 0)
-					elapsedTime = 0;
-				if(elapsedTime > 10000000)
-					elapsedTime = 10000000;
+				if(elapsedTime < 0) elapsedTime = 0;
+				if(elapsedTime > 10000000) elapsedTime = 10000000;
 	
 				delta += elapsedTime / 10000000.0;
 				bool ticked = false;
@@ -133,7 +124,6 @@ namespace SimNum_Taxis
 				{
 					tick();
 					ticks++;
-	
 					delta -= secondsPerTick;
 					ticked = true;
 	
@@ -151,47 +141,42 @@ namespace SimNum_Taxis
 					fps++;
 				}
 				else
-				{
 					System.Threading.Thread.Sleep(1);
-				}
-				
 			}
 			m_thread.Join();
-        }
+        }        
         
-        
-        
+        /// <summary> Is executed FPS times per second. </summary>
         private void tick()
         {
         	//Console.WriteLine(a++);
             this.m_City.gameTick();
 
             this.m_City.Time = this.m_City.Time.AddMinutes(this.m_City.RatioTime / City.FPS);
-            // Need to use the Dispatcher :  Allow a thread
+            // We need to use the Dispatcher :  Allows a thread
             // (here Timer from City) to access the graphical part
-            this.c_Time_TextBlock.Dispatcher.Invoke((Action)(
-                () => 
-                {
-                    this.c_Time_TextBlock.Text = 
-                        String.Format("{0,2}H{1,2}",
-                            this.m_City.Time.Hour, this.m_City.Time.Minute);
-                }));
+            this.c_Time_TextBlock.Dispatcher.Invoke((Action)(() => 
+            {
+            	this.c_Time_TextBlock.Text = String.Format("{0,2}H{1,2}", this.m_City.Time.Hour, this.m_City.Time.Minute);
+            }));
         }
         
-        
+        /// <summary> Is executed every time the game has ticked at least once. </summary>
         private void render()
         {
         	this.ReDrawCanvas();
         }
-        
-        
-        
-        
-        
         #endregion
         
-        
-        
+        #region Action performed when the window is terminated
+        /// <summary> Exits the program and joins the thread when quited. </summary>
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+			isRunning = false;
+			System.Environment.Exit(0);
+		}
+		#endregion
 
         #region Displays statistics
         private void UpdatePercentageInformations()
@@ -243,7 +228,7 @@ namespace SimNum_Taxis
 	            #region Taxis display
 	            foreach(Point taxisPosition in this.m_City.TaxisPosition)
 	            {
-	            	int size = 10;
+	            	int size = 12;
 	            	Rectangle r = new Rectangle()
 	            	{
 	            		Fill = new SolidColorBrush(Colors.Yellow),
@@ -258,14 +243,15 @@ namespace SimNum_Taxis
 	            foreach(Client c in m_City.Clients)
 	            {
 	            	// Clients looks smaller when inside a taxi
-	            	int size = (c.MyTaxi==null?10:5);
+	            	int size = (c.MyTaxi==null?10:6);
 	            	Ellipse e = new Ellipse()
 	            	{
 	            		Fill = new SolidColorBrush(c.Color),
 	            		Width = size, Height = size,
 	            		StrokeThickness = 1.0, Stroke = Brushes.Black
 	            	};
-	            	addShapeToCanvas(e, getCanvasXMatching(c.Position.X) - size/2, getCanvasYMatching(c.Position.Y) - size/2);
+	            	int inTaxi = c.placeInTaxi() * 2;
+	            	addShapeToCanvas(e, getCanvasXMatching(c.Position.X) - size/2 + inTaxi, getCanvasYMatching(c.Position.Y) - size/2 + inTaxi);
 
 	            	// Cross for client's destination
 	            	size = 10;

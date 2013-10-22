@@ -20,11 +20,12 @@ namespace SimNum_Taxis
             this.m_Color = randomColor();
             this.m_MyTaxi = null;
             
-            Console.WriteLine("LifeTime : " + (int) life + " => " + (int) life/(City.FPS));
+           // Console.WriteLine("LifeTime : " + (int) life + " => " + (int) life/(City.FPS));
         }
         #endregion
 
         #region clientTick
+        /// <summary> Returns false if the client gives up. </summary>
         public bool tick()
         {
         	// If a client is in the street, he becomes older
@@ -54,6 +55,16 @@ namespace SimNum_Taxis
         	return allColors[(int) (r.NextDouble() * allColors.Count())];
         }
         #endregion
+        
+        #region Client's place in his taxi
+        /// <summary> Returns 0 if the client has no taxi. -1 if he is the first client of his taxi and 1 otherwise. </summary>
+        public int placeInTaxi()
+        {
+        	if(m_MyTaxi==null)
+        		return 0;
+        	return m_MyTaxi.Clients[0].Equals(this)?-1:1;
+        }
+        #endregion       
 
         #region Client attributes
         private City m_city;
@@ -70,7 +81,7 @@ namespace SimNum_Taxis
         private Point m_destination;
         public Point Destination { get { return this.m_destination; } }
 
-        // Time in tick before despawn.
+        // Time in ticks before despawn.
         private double m_LifeTime;
         public double LifeTime { get { return this.m_LifeTime; } }
         

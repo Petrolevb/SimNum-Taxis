@@ -60,6 +60,7 @@
 				<ComboBoxItem>10x Speed Ratio</ComboBoxItem>
 				<ComboBoxItem>30x Speed Ratio</ComboBoxItem>
 				<ComboBoxItem>60x Speed Ratio</ComboBoxItem>
+				<ComboBoxItem>120x Speed Ratio</ComboBoxItem>
 				<ComboBoxItem>300x Speed Ratio</ComboBoxItem>
 			</ComboBox>
 		</StackPanel>

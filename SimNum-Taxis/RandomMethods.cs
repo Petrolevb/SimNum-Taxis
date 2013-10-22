@@ -64,9 +64,5 @@ namespace SimNum_Taxis
         	
         	return res * fps;
         }
-		
-		
-		
-		
 	}
 }
