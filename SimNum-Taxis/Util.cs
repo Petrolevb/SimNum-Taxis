@@ -17,7 +17,7 @@ namespace SimNum_Taxis
 		#endregion
 		
 		#region Movement related methods
-		/// <summary> Returns the position of the movement of p by dX and dY, at maxSpeed. </summary>
+		/// <summary> Returns the position of the movement of p by dX and dY. </summary>
 		public static Point MoveBy(Point p, double dX, double dY)
 		{
 			p.X = dX + p.X;
@@ -77,6 +77,7 @@ namespace SimNum_Taxis
 		#endregion
 		
 		#region Double Gaussian function
+		/// <summary> Used to set a realistic repartition of client according to the hour of the day. Fewer clients at night, eg. </summary>
         public static double doubleGaussian(double x)
         {
         	double gaussian1 = 5 * Util.Gaussian(x, 3.5, 12);

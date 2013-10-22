@@ -22,7 +22,7 @@ namespace SimNum_Taxis
             this.m_TimeInApplication.Start();
             this.m_timeTick = new System.Timers.Timer(INTERVAL);
             this.m_timeTick.Start();
-            this.m_RatioTime = 2;
+            this.m_RatioTime = 1;
             this.m_Taxis = new List<Taxi>();
             this.m_Clients = new List<Client>();
             this.m_SizeCity = 10;
@@ -41,7 +41,7 @@ namespace SimNum_Taxis
         {
         	// TODO Change PositionInCircle According to day's time
         	// Trys to spawn a new Client
-      /*  	for(int i = 0; i < (int) RatioTime; i++)
+        	for(int i = 0; i < (int) RatioTime; i++)
         		if(m_random.TrySpawnClient(m_Time))
 	        		SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
         /**/	
@@ -144,7 +144,7 @@ namespace SimNum_Taxis
         /// <summary> Add a new client at the given position </summary>
         public void SpawnClient(Point position)
         {
-        	Client c = new Client(this, position, m_random.CalculateClientDestination(m_SizeCity), m_random.CalculateClientLifeTime(FPS));
+        	Client c = new Client(this, position, m_random.CalculateClientDestination(position, m_SizeCity), m_random.CalculateClientLifeTime(FPS));
            	this.m_Clients.Add(c);
            
            	AI.AssignBestTaxiToCLient(c, NonFullTaxis());

@@ -41,7 +41,7 @@ namespace SimNum_Taxis
         	return res;
         }
         
-        // TODO Gaussian random picker
+        // TODO Arthurian function
         /// <summary> Chooses a destination inside the city </summary>
         public Point CalculateClientDestination(Point clientPosition, int size)
         {
