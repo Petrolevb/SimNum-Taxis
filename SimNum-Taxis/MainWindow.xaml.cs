@@ -16,15 +16,12 @@ using System.Windows.Shapes;
 
 namespace SimNum_Taxis
 {
-    /// <summary>
-    /// Logique d'interaction pour MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private City m_City;
         private System.Threading.Thread m_thread;
         private bool isRunning = false;
-        
+
         // debug variable
         public static int a = 0;
         

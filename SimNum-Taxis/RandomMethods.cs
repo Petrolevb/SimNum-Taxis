@@ -15,14 +15,15 @@ namespace SimNum_Taxis
 		/// <summary> Chooses a random, evenly probable, position inside the circle of size size </summary>
         public Point CalculateUniformPositionInCircle(int size)
         {
+        	// u1 represents the randomly choosed angle and u2 the distance to the center of the returned point.
     		double u1 = m_random.NextDouble();
     		double u2 = m_random.NextDouble();
 
-    		Point pos = new Point();    		
-    		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * size * 1000;
-    		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * size * 1000;
+    		Point res = new Point();    		
+    		res.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * size * 1000;
+    		res.Y = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * size * 1000;
 
-    		return pos;
+    		return res;
         }
 
         // TODO improve me !!!
@@ -41,21 +42,42 @@ namespace SimNum_Taxis
         	return res;
         }
         
-        // TODO Arthurian function
-        /// <summary> Chooses a destination inside the city </summary>
+        /// <summary> Chooses a destination inside the city following a Gaussian distribution around the point clientPosition :
+		/// 		  Most of the results will be 7 kms away from the client. Fewer will be very close or very far... </summary>
         public Point CalculateClientDestination(Point clientPosition, int size)
         {
+        	bool accept = false;
+        	// N is the distance in kms most of the clients will like to go to
+        	double N = Math.Min(7, size);
+        	
     		double u1 = m_random.NextDouble();
-    		double u2 = m_random.NextDouble();
+    		// This time, u2 is not uniform => there's the highest chances for the client to spawn N kms away from its position.
+    		double u2 = 0;
+    		while(!accept)
+    		{
+    			u2 = m_random.NextDouble();
+    			// The gaussian has sigma = 1/6 because we want 99% of the values to range in "x" € [0..1]
+    			// And it has a nu of N/size because we want most of the clients to go N kms from their current position
+    			// We divide by 2.39365 because 2.39365 is the maximum and we want the gaussian's "y" values to range between 0 and 1
+    			if(m_random.NextDouble() < (Util.Gaussian(u2, 1/6.0, N/size))/2.39365)
+					accept=true;
+    		}
 
-    		Point pos = new Point();
-    		pos.X = Math.Sqrt(u2) * Math.Cos(2 * Math.PI * u1) * size * 1000;
-    		pos.Y  = Math.Sqrt(u2) * Math.Sin(2 * Math.PI * u1) * size * 1000;
+    		Point res = new Point();
+    		// nb : (N/size) * size = N => Most of the clients' destination will be N kms away from their position
+    		res.X = u2 * Math.Cos(2 * Math.PI * u1) * size * 1000 + clientPosition.X;
+    		res.Y = u2 * Math.Sin(2 * Math.PI * u1) * size * 1000 + clientPosition.Y;
 
-    		return pos;
+    		// This is the rejection method.
+    		// If the result is inside the city, we return the result
+    		// Otherwise, we calculate another result    		
+    		if(res.X*res.X + res.Y*res.Y < size*size*1000000)
+    			return res;
+    		else
+    			return CalculateClientDestination(clientPosition, size);
         }
-        
-        // TODO Improve it. Currently it waits 5 minuts + r minuts, where r € [0 .. 60]
+
+        // TODO Improve it. Currently it waits 5 minuts + r minuts, where r € [0..60]
 		/// <summary> Gives the life time of a client </summary>        
         public double CalculateClientLifeTime(int fps)
         {

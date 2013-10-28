@@ -13,6 +13,9 @@ namespace SimNum_Taxis
     {
     	public static int FPS = 60;
     	
+    	private int[] occs = new int[24];
+    	private bool tmp = false;
+    	
         #region Constructor
         public City()
         {
@@ -32,18 +35,42 @@ namespace SimNum_Taxis
 		#region Ticks management
         /// <summary> Main loop. Is called several times each second. </summary>
         public void gameTick()
-        {       	
-        	// TODO Change PositionInCircle According to day's time
+        {	
         	// Tries to spawn a new Client
         	for(int i = 0; i < (int) RatioTime; i++)
         		if(m_random.TrySpawnClient(m_Time))
+        		{
         			SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
+        			occs[m_Time.Hour]++;
+        		}
+
+        	if(m_Time.Hour == 0)
+        	{
+        		if(tmp == true)
+        		{
+        			Console.WriteLine("------------------------\nDAY " + m_Time.Day + " : ");
+        			int b = 0;
+        			tmp = false;
+        			for(int i=0; i<24; i++)
+        			{
+        				b += occs[i];
+        			}
+        			for(int i=0; i<24; i++)
+        			{
+        				Console.WriteLine(i + "h : " + occs[i] + " ==> " + 100*occs[i]/((float)b) + "%");
+        			}
+        			Console.WriteLine("Total : " + b);
+        		}
+        	}
+        	else
+        	{
+        		tmp = true;
+        	}
         	/**/
 
         	// Makes every taxi move
         	foreach(Taxi t in m_Taxis)
         		t.tick();
-
         	// Makes every client move
         	for(int i = 0; i < m_Clients.Count; i++)
         	{
@@ -140,7 +167,7 @@ namespace SimNum_Taxis
         	Client c = new Client(this, position, m_random.CalculateClientDestination(position, m_SizeCity), m_random.CalculateClientLifeTime(FPS));
            	this.m_Clients.Add(c);
            
-           	AI.AssignBestTaxiToCLient(c, NonFullTaxis());
+           	AI.AssignBestTaxiToClient(c, NonFullTaxis());
 
             this.m_NumberOfClient++; RaiseNumberOfClientChanged(this, new EventArgs());
             this.m_NumberOfAwaiting++; RaiseNumberOfAwaitingChanged(this, new EventArgs());
@@ -176,10 +203,10 @@ namespace SimNum_Taxis
         #region Clients accessors
         private List<Client> m_Clients;
         
-        ///<return> List of all clients </return>
+        ///<returns> List of all clients </returns>
         public List<Client> Clients { get { return m_Clients; } }
         
-        ///<return> List of all client positions </return>
+        ///<returns> List of all client positions </returns>
         public List<Point> ClientPositions 
         {
             get 
@@ -204,11 +231,25 @@ namespace SimNum_Taxis
         	}
         }
         
+        /// <returns> List of clients that have no taxis AND that are not about to be picked up by a taxi. </returns>
+        public List<Client> AwaitingUnprocessedClients	
+        {
+        	get
+        	{
+        		List<Client> res = new List<Client>();
+        		foreach(Client c in m_Clients)
+        			if(c.MyTaxi == null && c.Targeted == false)
+        				res.Add(c);
+        		return res;
+        	}
+        }        
+        
         /// <summary> Returns the client the closest to p or null if none exists </summary>
-        public Client getAwaitingClientClosestTo(Point p)
+        public Client getAwaitingUnprocessedClientClosestTo(Point p)
         {
         	Client res = null;
-        	foreach(Client c in AwaitingClients)
+
+        	foreach(Client c in AwaitingUnprocessedClients)
         	{
         		if(res == null) res = c;
         		else if(Util.Distance(p, c.Position) < Util.Distance(p, res.Destination))

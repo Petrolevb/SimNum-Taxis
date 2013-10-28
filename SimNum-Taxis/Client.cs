@@ -18,6 +18,7 @@ namespace SimNum_Taxis
             this.m_LifeTime = life;
             this.m_destination = destination;
             this.m_Color = randomColor();
+            this.m_isTargeted = false;
             this.m_MyTaxi = null;
             
            // Console.WriteLine("LifeTime : " + (int) life + " => " + (int) life/(City.FPS));
@@ -40,7 +41,6 @@ namespace SimNum_Taxis
         		}
         	}
         	// If not, he follows his taxi
-        	// TODO move a little m_position
         	else
         		m_Position = m_MyTaxi.Position;
         	
@@ -60,7 +60,7 @@ namespace SimNum_Taxis
         /// <summary> Returns 0 if the client has no taxi. -1 if he is the first client of his taxi and 1 otherwise. </summary>
         public int placeInTaxi()
         {
-        	if(m_MyTaxi==null)
+        	if(m_MyTaxi == null)
         		return 0;
         	return m_MyTaxi.Clients[0].Equals(this)?-1:1;
         }
@@ -71,11 +71,15 @@ namespace SimNum_Taxis
         
         // Taxi the client belongs to (can be null).
         private Taxi m_MyTaxi;
-        public Taxi MyTaxi { get { return m_MyTaxi; } set { m_MyTaxi = value; } }
+        public Taxi MyTaxi { get { return this.m_MyTaxi; } set { this.m_MyTaxi = value; } }
         
         // Client's color.
         private Color m_Color;
         public Color Color { get { return this.m_Color; } }
+        
+        // Whever a taxi is currently going after this client.
+        private bool m_isTargeted;
+        public bool Targeted { get { return this.m_isTargeted; } set { this.m_isTargeted = value; } }
         
         // Destination of the client.
         private Point m_destination;
@@ -99,8 +103,7 @@ namespace SimNum_Taxis
 	    									Colors.Lime,
 	    									Colors.Magenta,
 	    									Colors.Black };
-        #endregion
-        	
+        #endregion    	
         #endregion
     };
 }

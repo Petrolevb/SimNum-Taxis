@@ -6,27 +6,55 @@ using System.Windows;
 namespace SimNum_Taxis
 {
 	class AI
-	{		
-		/// <summary> Assigns client c to the taxi that will serve him the quickest among all availableTaxis. </summary>
-		public static void AssignBestTaxiToCLient(Client c, List<Taxi> availableTaxis)
+	{	
+    	#region Move taxi
+    	/// <summary> Moves the taxi taxi. The shortest path is taken : straight line. </summary>
+    	public static void move(Taxi taxi)
+    	{
+    		if(taxi.Target.X == -99999 && taxi.Target.Y == -99999)
+    			return;
+    		
+    		for(int i=0; i < taxi.MyCity.RatioTime; i++)
+    		{
+    			double angle = Util.AngleForShortestPath(taxi.Position, taxi.Target);
+    			taxi.Position = Util.MoveByPolar(taxi.Position, angle, taxi.Speed);
+    		}
+    	}
+    	#endregion
+	
+    	#region Taxis assignement
+		/// <summary> Assigns client c to the taxi that will serve him the quickest among all availableTaxis.
+		/// 		  Is called whenever a client spawns. </summary>
+		public static void AssignBestTaxiToClient(Client c, List<Taxi> availableTaxis)
         {
             availableTaxis = availableTaxis.OrderBy((Func<Taxi, double>)(
             	(Taxi t) => { return Util.Distance(t.Position, c.Position); }))
             	.ToList();
 
-			// TODO add comparaison between angles, not distances.
-			
 			// If the closest taxi has his current destination farther than the client c, we send the closest taxi
 			// If not, we try  with 2nd closest taxi and so on...
         	if(availableTaxis.Count > 0)
        			foreach(Taxi t in availableTaxis)
-	       			if(Util.Distance(t.Position, c.Position) < Util.Distance(t.Position, t.Target))
-	       			{
-	       				t.Target = c.Position;
-	       				break;
-	       			}
+					if(Util.Distance(t.Position, c.Position) < Util.Distance(t.Position, t.Target))
+					{
+        				AssignTaxiToClient(t, c);
+						break;
+					}	
        	}
 		
+		public static void AssignTaxiToClient(Taxi taxi, Client c)
+		{
+			// If the taxi was already targeting a client, this old client is no longer targeted.
+    		if(taxi.TargetedClient != null)
+    			taxi.TargetedClient.Targeted = false;
+    		// And we now target the new client.
+    		taxi.Target = c.Position;
+			c.Targeted = true;
+			taxi.TargetedClient = c;
+		}
+		#endregion
+		
+		#region Destination calculations
 		/// <summary> Tells the taxi taxi where to go according to its clients. </summary>
     	public static void RefreshDestination(Taxi taxi)
     	{
@@ -42,43 +70,24 @@ namespace SimNum_Taxis
     		// Otherwise, it goes to the only clients' destination OR to the closest unprocessed client
     		else
     		{
-    			// TODO Improve this whole part !
-    			
     			double distance = -1;
     			if(taxi.Clients.Count == 1)
     			{
     				taxi.Target = taxi.Clients[0].Destination;
     				distance = Util.Distance(taxi.Target, taxi.Position);
     			}
-    			
+
     			// Seeks the closest client and compares the distances between him and the current target.
     			// Possibly updates the target.
-    												// TODO awaiting untargeted client
-    			Client possibleNewClient = taxi.MyCity.getAwaitingClientClosestTo(taxi.Position);
+    			Client possibleNewClient = taxi.MyCity.getAwaitingUnprocessedClientClosestTo(taxi.Position);
     			if(possibleNewClient == null)
     			{
     				if(distance == -1)
     					taxi.Target = new Point(-99999, -99999);
     			}
-    			else
-    			{
-    				if( distance == -1 || Util.Distance(possibleNewClient.Position, taxi.Position) < distance)
-    					taxi.Target = possibleNewClient.Position;
-    			}
+    			else if(distance == -1 || Util.Distance(possibleNewClient.Position, taxi.Position) < distance)
+    				AssignTaxiToClient(taxi, possibleNewClient);
 	    	}
-    	}
-		
-    	/// <summary> Moves the taxi taxi. The shortest path is taken : straight line. </summary>
-    	public static void move(Taxi taxi)
-    	{
-    		if(taxi.Target.X == -99999 && taxi.Target.Y == -99999)
-    			return;
-    		
-    		for(int i=0; i < taxi.MyCity.RatioTime; i++)
-    		{
-    			double angle = Util.AngleForShortestPath(taxi.Position, taxi.Target);
-    			taxi.Position = Util.MoveByPolar(taxi.Position, angle, taxi.Speed);
-    		}
     	}
     	
     	/// <summary> Deals with taxi's arrival to its target and updates the destination. </summary>
@@ -117,5 +126,6 @@ namespace SimNum_Taxis
 			}
 			AI.RefreshDestination(taxi);
     	}
+    	#endregion
 	}
 }

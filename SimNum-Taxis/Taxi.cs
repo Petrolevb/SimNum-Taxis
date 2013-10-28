@@ -16,6 +16,7 @@ namespace SimNum_Taxis
     		this.m_position = position;
     		this.m_myCity = city;
     		this.m_speed = speed;
+    		this.m_targetedClient = null;
     		AI.RefreshDestination(this);
     	}
     	#endregion
@@ -61,12 +62,16 @@ namespace SimNum_Taxis
     	private City m_myCity;
     	public City MyCity { get { return m_myCity; } }
     	
-    	private Point m_position;
-    	public Point Position { get { return m_position; } set { m_position = value; } }
+    	/// <summary> If the taxi's target is a client, this field is not null. </summary>
+    	private Client m_targetedClient;
+    	public Client TargetedClient { get { return this.m_targetedClient; } set { this.m_targetedClient = value; } }
     	
     	/// <summary> Destination. Default value is new Point(-99999 -99999) </summary>
     	private Point m_target;
     	public Point Target { get { return m_target; } set { m_target = value; } }
+    	
+    	private Point m_position;
+    	public Point Position { get { return m_position; } set { m_position = value; } }
     	#endregion
     };
 }
