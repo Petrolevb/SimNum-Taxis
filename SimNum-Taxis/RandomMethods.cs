@@ -81,8 +81,7 @@ namespace SimNum_Taxis
         	return res;
         }
         #endregion
-        
-        
+
         //TODO spawn rate according to city's size.
         #region Client frequency of spawn algorithm
         /// <summary> Tells wether to spawn a client </summary>
