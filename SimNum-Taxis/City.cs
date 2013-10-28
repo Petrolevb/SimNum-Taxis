@@ -164,7 +164,7 @@ namespace SimNum_Taxis
         /// <summary> Add a new client at the given position </summary>
         public void SpawnClient(Point position)
         {
-        	Client c = new Client(this, position, m_random.CalculateClientDestination(position, m_SizeCity), m_random.CalculateClientLifeTime(FPS));
+        	Client c = new Client(this, position, m_random.CalculateClientDestination(position, m_SizeCity), m_random.CalculateClientLifeTime());
            	this.m_Clients.Add(c);
            
            	AI.AssignBestTaxiToClient(c, NonFullTaxis());

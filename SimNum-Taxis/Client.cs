@@ -21,7 +21,7 @@ namespace SimNum_Taxis
             this.m_isTargeted = false;
             this.m_MyTaxi = null;
             
-           // Console.WriteLine("LifeTime : " + (int) life + " => " + (int) life/(City.FPS));
+            //Console.WriteLine("LifeTime : " + (int) life + " => " + (int) life/(City.FPS));
         }
         #endregion
 
