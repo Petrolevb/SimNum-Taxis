@@ -82,16 +82,21 @@ namespace SimNum_Taxis
         }
         #endregion
 
-        //TODO spawn rate according to city's size.
         #region Client frequency of spawn algorithm
         /// <summary> Tells wether to spawn a client </summary>
-        public bool TrySpawnClient(DateTime time)
+        public bool TrySpawnClient(DateTime time, int size)
         {
-        	double hourOfDay = time.Hour + (double) time.Minute / 60;
         	bool res = false;
-        	int proba = (int) (City.FPS * 1.5);
+        	double hourOfDay = time.Hour + (double) time.Minute / 60;
         	
-        	if((int) (m_random.NextDouble() * proba) == 1)
+        	int ratioRP = 200;
+        	int minimumSpawnPerDay = 300;
+        	double cityArea = Math.PI * size * size / 4;
+        	double probabilityMinimum = minimumSpawnPerDay / ((double) (60 * City.FPS * 12));
+        	double probability = (cityArea * 1900) / ((double) (ratioRP * City.FPS * 60 * 12));
+        	probability = Math.Max(probabilityMinimum, probability);
+        	
+        	if((int) (m_random.NextDouble() / probability) == 1)
         		if(m_random.NextDouble() <= Util.doubleGaussian(hourOfDay))
         			res = true;
 

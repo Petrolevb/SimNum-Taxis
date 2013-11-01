@@ -26,25 +26,18 @@ namespace SimNum_Taxis
         #endregion
 
         #region clientTick
-        /// <summary> Returns false if the client gives up. </summary>
-        public bool tick()
+        public void tick()
         {
         	// If a client is in the street, he becomes older
         	if(m_MyTaxi == null)
         	{
         		m_LifeTime -= m_city.RatioTime;
-        		
         		if(m_LifeTime <= 0)
-        		{
         			m_city.ClientDied(this);
-        			return false;
-        		}
         	}
         	// If not, he follows his taxi
         	else
-        		m_Position = m_MyTaxi.Position;
-        	
-        	return true;
+        		m_Position = m_MyTaxi.Position;        	
         }
         #endregion
         

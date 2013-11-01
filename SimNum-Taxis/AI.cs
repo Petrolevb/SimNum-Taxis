@@ -103,6 +103,7 @@ namespace SimNum_Taxis
 			if(taxi.Clients.Count < 2)
 			{
 				Client c = taxi.MyCity.getClientWaitingAtPosition(taxi.Position);
+								
 				if(c != null)
 				{
 					taxi.Clients.Add(c);

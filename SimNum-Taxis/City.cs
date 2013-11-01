@@ -13,9 +13,6 @@ namespace SimNum_Taxis
     {
     	public static int FPS = 60;
     	
-    	private int[] occs = new int[24];
-    	private bool tmp = false;
-    	
         #region Constructor
         public City()
         {
@@ -35,48 +32,23 @@ namespace SimNum_Taxis
 		#region Ticks management
         /// <summary> Main loop. Is called several times each second. </summary>
         public void gameTick()
-        {	
-        	// Tries to spawn a new Client
-        	for(int i = 0; i < (int) RatioTime; i++)
-        		if(m_random.TrySpawnClient(m_Time))
-        		{
-        			SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
-        			occs[m_Time.Hour]++;
-        		}
+        {
+        	lock(m_Clients)
+        	{
+				// Tries to spawn a new Client
+	        	for(int i = 0; i < (int) RatioTime; i++)
+	        		if(m_random.TrySpawnClient(m_Time, m_SizeCity))
+	        			SpawnClient(m_random.CalculateUniformPositionInCircle(m_SizeCity));
+				/**/
 
-        	if(m_Time.Hour == 0)
-        	{
-        		if(tmp == true)
-        		{
-        			Console.WriteLine("------------------------\nDAY " + m_Time.Day + " : ");
-        			int b = 0;
-        			tmp = false;
-        			for(int i=0; i<24; i++)
-        			{
-        				b += occs[i];
-        			}
-        			for(int i=0; i<24; i++)
-        			{
-        				Console.WriteLine(i + "h : " + occs[i] + " ==> " + 100*occs[i]/((float)b) + "%");
-        			}
-        			Console.WriteLine("Total : " + b);
-        		}
-        	}
-        	else
-        	{
-        		tmp = true;
-        	}
-        	/**/
-
-        	// Makes every taxi move
-        	foreach(Taxi t in m_Taxis)
-        		t.tick();
-        	// Makes every client move
-        	for(int i = 0; i < m_Clients.Count; i++)
-        	{
-        		if(m_Clients[i].tick() == false)
-        			i--;
-        	}
+				// Makes every taxi move
+	        	foreach(Taxi t in m_Taxis)
+	        		t.tick();
+        		
+	        	// Makes every client move
+	    		for(int i = m_Clients.Count - 1; i >= 0; i--)
+	    			m_Clients[i].tick();
+        	}       
         }
 		#endregion
         
@@ -108,6 +80,7 @@ namespace SimNum_Taxis
         /// <return> Get Number of taxis </return>
         public int NumberOfTaxis { get { return this.m_Taxis.Count; } }
         private List<Taxi> m_Taxis;
+        public List<Taxi> Taxis { set { this.m_Taxis = value; } }
         ///<return> List of all taxis position </return>
         public List<Point> TaxisPosition
         {
@@ -204,7 +177,7 @@ namespace SimNum_Taxis
         private List<Client> m_Clients;
         
         ///<returns> List of all clients </returns>
-        public List<Client> Clients { get { return m_Clients; } }
+        public List<Client> Clients { get { return m_Clients; } set { this.m_Clients = value; } }
         
         ///<returns> List of all client positions </returns>
         public List<Point> ClientPositions 
@@ -281,23 +254,32 @@ namespace SimNum_Taxis
         
         #region Client Numbers
         private int m_NumberOfClient;
-        public int NumberOfClient { get { return this.m_NumberOfClient; } }
+        public int NumberOfClient { get { return this.m_NumberOfClient; } set { this.m_NumberOfClient = value; } }
 
         private int m_NumberOfAwaiting;
-        public int NumberOfAwaiting { get { return this.m_NumberOfAwaiting; } }
+        public int NumberOfAwaiting { get { return this.m_NumberOfAwaiting; } set { this.m_NumberOfAwaiting = value; } }
         
         private int m_NumberOfUnsatisfied;
-        public int NumberOfUnsatisfied { get { return this.m_NumberOfUnsatisfied;  } }
+        public int NumberOfUnsatisfied { get { return this.m_NumberOfUnsatisfied;  } set { this.m_NumberOfUnsatisfied = value; } }
         
         private int m_NumberOfPleased;
-        public int NumberOfPleased { get { return this.m_NumberOfPleased; } }
+        public int NumberOfPleased { get { return this.m_NumberOfPleased; } set { this.m_NumberOfPleased = value; } }
         
         private int m_NumberInsideTaxis;
-        public int NumberInsideTaxis { get { return this.m_NumberInsideTaxis; } }
+        public int NumberInsideTaxis { get { return this.m_NumberInsideTaxis; } set { this.m_NumberInsideTaxis = value; } }
         #endregion
         #endregion
 
         #region Events NumbersChanged
+        public void refreshAllNumbers()
+        {
+        	this.RaiseNumberOfClientChanged(this, new EventArgs());
+        	this.RaiseNumberOfAwaitingChanged(this, new EventArgs());
+        	this.RaiseNumberOfInsideTaxisChanged(this, new EventArgs());
+        	this.RaiseNumberOfPleasedChanged(this, new EventArgs());
+        	this.RaiseNumberOfUnsatisfiedChanged(this, new EventArgs());
+        }
+        
         private EventHandler e_NumberOfClientChanged;
         public event EventHandler NumberOfClientChanged
         {
