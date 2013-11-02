@@ -88,11 +88,11 @@ namespace SimNum_Taxis
         {
         	bool res = false;
         	double hourOfDay = time.Hour + (double) time.Minute / 60;
-        	
+
         	int ratioRP = 200;
-        	int minimumSpawnPerDay = 300;
+        	int minimumSpawnsPerDay = 300;
         	double cityArea = Math.PI * size * size / 4;
-        	double probabilityMinimum = minimumSpawnPerDay / ((double) (60 * City.FPS * 12));
+        	double probabilityMinimum = minimumSpawnsPerDay / ((double) (60 * City.FPS * 12));
         	double probability = (cityArea * 1900) / ((double) (ratioRP * City.FPS * 60 * 12));
         	probability = Math.Max(probabilityMinimum, probability);
         	
